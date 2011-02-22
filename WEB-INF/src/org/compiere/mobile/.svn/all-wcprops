@@ -1,0 +1,185 @@
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www
+END
+WLogin.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WLogin.java
+END
+WLocation.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WLocation.java
+END
+WLookup.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WLookup.java
+END
+Test2.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/Test2.java
+END
+WWorkflow.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WWorkflow.java
+END
+WFindAdv.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WFindAdv.java
+END
+WReport.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WReport.java
+END
+WValuePreference.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WValuePreference.java
+END
+WWindowStatus.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WWindowStatus.java
+END
+WProcess.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WProcess.java
+END
+WStatusArrayList.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WStatusArrayList.java
+END
+WChat.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WChat.java
+END
+WTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WTest.java
+END
+WProcessCtl.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WProcessCtl.java
+END
+WStatus.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WStatus.java
+END
+WZoom.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WZoom.java
+END
+WFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WFilter.java
+END
+WFieldUpdate.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WFieldUpdate.java
+END
+DisplayTable.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/DisplayTable.java
+END
+WHelp.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WHelp.java
+END
+WAttachment.java
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WAttachment.java
+END
+Test.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/Test.java
+END
+WError.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WError.java
+END
+WebField.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WebField.java
+END
+WAccount.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WAccount.java
+END
+WStart.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WStart.java
+END
+WTask.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WTask.java
+END
+WForm.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WForm.java
+END
+WMenu.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WMenu.java
+END
+WWindow.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/adempiere/!svn/ver/12599/tags/adempiere360lts/serverApps/src/main/servlet/org/compiere/www/WWindow.java
+END
