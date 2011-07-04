@@ -38,6 +38,7 @@ import org.apache.ecs.xhtml.a;
 import org.apache.ecs.xhtml.div;
 import org.apache.ecs.xhtml.fieldset;
 import org.apache.ecs.xhtml.form;
+import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.i;
 import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.li;
@@ -390,7 +391,21 @@ public class WProcess extends HttpServlet
 			myForm.addElement(fs);
 			myForm.addElement(submitbtn);
 			
-			doc.getBody().addElement(myForm);
+			div div = new div();
+			div.setClass("toolbar");
+			h1 header = new h1();
+			header.setID("pageTitle");
+			div.addElement(header);
+			
+			a anchor = new a();
+			anchor.setClass("button");
+			anchor.setHref(MobileEnv.getBaseDirectory("WMenu"));
+			anchor.setTarget("_self");
+			anchor.addElement("Menu");
+			div.addElement(anchor);
+
+			doc.getBody().addElement(myForm).addElement(div);
+			
 		}
 		return doc;
 	}	//	createParameterPage
