@@ -6,7 +6,7 @@
 
 <project name="MobileUI" default="war" basedir=".">
 	<description>
-	    This buildfile is used to build the Zk WebUI client.
+	    This buildfile is used to build the Mobile UI client.
   	</description>
 	<!-- set global properties for this build -->
 	<!--<property environment="env"/>-->
