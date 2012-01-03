@@ -496,7 +496,7 @@ public class WebField
 		cb.setDisabled(m_readOnly);
 		if (m_error)
 			cb.setClass(C_ERROR);
-		//
+		
 		if (m_hasDependents || m_hasCallout)
 			cb.setOnChange("startUpdate(this);");
 		//
@@ -814,8 +814,10 @@ public class WebField
 					m_dataDisplay =name;}
 				else
 					options[i] = new option(key).addElement(name);
-			}			
+			}		
+			
 		}
+		
 		//If no key found then default to first value
 		//if (!keyFound && size>0)
 			//options[0].setSelected(true);

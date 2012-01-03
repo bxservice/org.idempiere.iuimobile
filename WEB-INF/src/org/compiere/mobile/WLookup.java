@@ -163,7 +163,7 @@ public class WLookup extends HttpServlet
 			
 			for (int i = 0; i < parameters.length; i++)
 			{						
-				if (para.getColumnName().equals(columnName))
+				if (parameters[i].getColumnName().equals(columnName))
 					para = parameters[i];
 			}
 			
