@@ -480,7 +480,10 @@ function encodeForm(form)
 		for (var i = 0; i < inputs.length; ++i)
 		{
 			if (inputs[i].name)
-				args.push(inputs[i].name + "=" + escape(inputs[i].value));
+				if (inputs[i].type != "checkbox" || inputs[i].checked)
+					args.push(inputs[i].name + "=" + escape(inputs[i].value));
+				else
+					args.push(inputs[i].name + "=" + escape("false"));
 		}
 	}
 
