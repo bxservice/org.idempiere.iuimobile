@@ -155,6 +155,7 @@ public class WProcess extends HttpServlet
 		else
 		{
 			doPost(request, response);
+			return;
 			/*
 			int AD_Process_ID = WebUtil.getParameterAsInt(request, "AD_Process_ID");			
 			int AD_Window_ID = WebUtil.getParameterAsInt(request, "AD_Window_ID");
@@ -649,7 +650,7 @@ public class WProcess extends HttpServlet
 				try
 				{
 					if (DisplayType.isNumeric(pPara.getAD_Reference_ID()) 
-						|| DisplayType.isID(pPara.getAD_Reference_ID()))
+						|| DisplayType.isID(pPara.getAD_Reference_ID()) )
 					{
 						BigDecimal bd = null;
 						if (value instanceof BigDecimal)
@@ -658,7 +659,13 @@ public class WProcess extends HttpServlet
 							bd = new BigDecimal (((Integer)value).intValue());
 						else
 							bd = new BigDecimal (value.toString());
-						iPara.setP_Number(bd);
+						
+						if ((DisplayType.isID(pPara.getAD_Reference_ID()) && "-1".equals(value))
+								|| (DisplayType.Locator == pPara.getAD_Reference_ID() && "0".equals(value)))      // empty selection
+							iPara.setP_Number((BigDecimal) null);
+						else
+							iPara.setP_Number(bd);
+						
 						log.fine("fillParameter - " + key
 								+ " = " + valueString + " (=" + bd + "=)");
 					}
