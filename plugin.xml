@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.equinox.http.registry.httpcontexts">
+      <httpcontext
+            class="org.idempiere.mobile.DefaultHttpContext"
+            id="org.idempiere.mobile">
+      </httpcontext>
+   </extension>
+   <extension
+         point="org.eclipse.equinox.http.registry.servlets">
+      <servlet
+            alias="/WMenu"
+            class="org.compiere.mobile.WMenu"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WStart"
+            class="org.compiere.mobile.WStart"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WLogin"
+            class="org.compiere.mobile.WLogin"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WForm"
+            class="org.compiere.mobile.WForm"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WWindow"
+            class="org.compiere.mobile.WWindow"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/LoginDynUpdate"
+            class="org.compiere.mobile.LoginDynUpdate"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WStatus"
+            class="org.compiere.mobile.WStatus"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+   </extension>
+
+</plugin>
