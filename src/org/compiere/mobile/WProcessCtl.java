@@ -16,22 +16,32 @@
  *****************************************************************************/
 package org.compiere.mobile;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.sql.*;
+import java.io.InvalidClassException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.compiere.apps.Waiting;
-import org.compiere.db.*;
-import org.compiere.interfaces.*;
-import org.compiere.model.*;
-import org.compiere.print.*;
-import org.compiere.process.*;
-import org.compiere.util.*;
-import org.compiere.wf.*;
+import org.compiere.db.CConnection;
+import org.compiere.interfaces.Server;
+import org.compiere.model.MPInstance;
+import org.compiere.print.ReportCtl;
+import org.compiere.process.ProcessCall;
+import org.compiere.process.ProcessInfo;
+import org.compiere.process.ProcessInfoUtil;
+import org.compiere.util.CLogger;
+import org.compiere.util.DB;
+import org.compiere.util.Env;
+import org.compiere.util.Ini;
+import org.compiere.util.Msg;
+import org.compiere.util.Trx;
+import org.compiere.wf.MWFProcess;
+import org.compiere.wf.MWorkflow;
 
 /**
  *	Process Interface Controller.
@@ -114,7 +124,6 @@ public class WProcessCtl extends Thread
 	private Properties    m_wscctx;
 	private ProcessInfo     m_pi;
 	private Trx				m_trx;
-	private Waiting         m_waiting;
 	private boolean 		m_IsServerProcess = false;
 	
 	/**	Static Logger	*/
@@ -175,8 +184,6 @@ public class WProcessCtl extends Thread
 			if (rs.next())
 			{
 				m_pi.setTitle (rs.getString(1));
-				if (m_waiting != null)
-					m_waiting.setTitle(m_pi.getTitle());
 				ProcedureName = rs.getString(2);
 				m_pi.setClassName (rs.getString(3));
 				m_pi.setAD_Process_ID (rs.getInt(4));
@@ -194,8 +201,6 @@ public class WProcessCtl extends Thread
 				if (estimate != 0)
 				{
 					m_pi.setEstSeconds (estimate + 1);     //  admin overhead
-					if (m_waiting != null)
-						m_waiting.setTimerEstimate(m_pi.getEstSeconds());
 				}
 				m_IsServerProcess = "Y".equals(rs.getString(10));
 			}
