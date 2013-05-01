@@ -748,7 +748,7 @@ public class WebField
 		//
 				
 		NamePair value = null;
-		Object[] list = lookup.getData (m_mandatory, true, !m_readOnly, false)
+		Object[] list = lookup.getData (m_mandatory, true, !m_readOnly, false, false)
 			.toArray();    //  if r/o also inactive
 		int size = list.length;		
 		option[] options = new option[size];

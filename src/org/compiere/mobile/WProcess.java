@@ -41,14 +41,12 @@ import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.i;
 import org.apache.ecs.xhtml.input;
-import org.apache.ecs.xhtml.li;
 import org.apache.ecs.xhtml.option;
 import org.apache.ecs.xhtml.p;
 import org.apache.ecs.xhtml.select;
 import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
 import org.apache.ecs.xhtml.tr;
-import org.apache.ecs.xhtml.ul;
 import org.compiere.model.GridTab;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MBankStatement;
@@ -67,7 +65,6 @@ import org.compiere.model.MProcessPara;
 import org.compiere.print.ReportEngine;
 import org.compiere.process.DocumentEngine;
 import org.compiere.process.ProcessInfo;
-import org.compiere.util.ASyncProcess;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -604,11 +601,6 @@ public class WProcess extends HttpServlet
 			log.info(e.toString());
 		}		
 	}	//	createProcessPage
-	
-	private ASyncProcess ASyncProcess(WProcess process) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	/**
 	 * 	Fill Parameter

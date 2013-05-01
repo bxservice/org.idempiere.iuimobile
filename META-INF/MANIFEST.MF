@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Mobile
-Bundle-SymbolicName: mobile;singleton:=true
+Bundle-Name: org.idempiere.iuimobile
+Bundle-SymbolicName: org.idempiere.iuimobile;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
  
