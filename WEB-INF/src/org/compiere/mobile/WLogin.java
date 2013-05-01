@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -35,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.ecs.AlignType;
 import org.apache.ecs.Element;
 import org.apache.ecs.HtmlColor;
 import org.apache.ecs.xhtml.a;
@@ -45,19 +43,13 @@ import org.apache.ecs.xhtml.fieldset;
 import org.apache.ecs.xhtml.font;
 import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
-import org.apache.ecs.xhtml.img;
 import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.label;
-import org.apache.ecs.xhtml.link;
-import org.apache.ecs.xhtml.meta;
 import org.apache.ecs.xhtml.option;
-import org.apache.ecs.xhtml.p;
 import org.apache.ecs.xhtml.script;
 import org.apache.ecs.xhtml.select;
 import org.apache.ecs.xhtml.strong;
-import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
-import org.apache.ecs.xhtml.tr;
 import org.compiere.model.MSession;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -68,7 +60,6 @@ import org.compiere.util.Login;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.compiere.util.ValueNamePair;
-import org.compiere.util.WebUtil;
 
 /**
  *  Web Login Page.
@@ -269,7 +260,7 @@ public class WLogin extends HttpServlet
 			if (cProp != null)
 			{
 				Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, MobileUtil.propertiesEncode(cProp));
-				cookie.setComment("(c) adempiere, Inc - Jorg Janke");
+				cookie.setComment("(c) iDempiere, 2013");
 				cookie.setSecure(false);
 				cookie.setPath("/");
 				if (cProp.size() == 0)
@@ -637,7 +628,10 @@ public class WLogin extends HttpServlet
 
 		KeyNamePair[] orgs = null;
 		if ( clients.length > 0 )
-			orgs = login.getOrgs (clients[0]);
+			{
+				Env.setContext(wsc.ctx, "#AD_Client_ID", clients[0].getKey());
+				orgs = login.getOrgs (new KeyNamePair(Integer.parseInt(roleOptions[0].getAttribute("value")) , roleOptions[0].getAttribute("value")));
+			}
 		
 		//	Org Pick
 		div1 = new div();
