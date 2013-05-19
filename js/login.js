@@ -9,15 +9,15 @@ function loginDynUpdate(selector)
     {
         if (req.readyState == 4)
         {
-            var clients = document.forms.Login2.AD_Client_IDF.options;
+            var roles = document.forms.Login2.AD_Role_IDF.options;
             var orgs = document.forms.Login2.AD_Org_IDF.options;
-            clients.length = 0;
+            roles.length = 0;
             orgs.length = 0;
             var response = JSON.parse(req.responseText);
-            if ( response.clients ) {
-            	for (i=0; i<response.clients.length; i++)
+            if ( response.roles ) {
+            	for (i=0; i<response.roles.length; i++)
             	{
-            		clients.add(new Option(response.clients[i].text, response.clients[i].value));
+            		roles.add(new Option(response.roles[i].text, response.roles[i].value));
             	}
             }
             if ( response.orgs ) {
@@ -30,10 +30,10 @@ function loginDynUpdate(selector)
     };
     
     var query;
-    if ( selector.id == "AD_Role_IDF")
-      query = "AD_Role_ID="+selector.value;
-    else if ( selector.id == "AD_Client_IDF")
-      query = "AD_Client_ID="+selector.value;
+    if ( selector.id == "AD_Client_IDF")
+        query = "AD_Client_ID="+selector.value;
+    else if ( selector.id == "AD_Role_IDF")
+        query = "AD_Role_ID="+selector.value;
     req.open("GET", "LoginDynUpdate?"+query, true);
     req.send(null);
 }

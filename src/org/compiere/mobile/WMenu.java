@@ -18,12 +18,8 @@ package org.compiere.mobile;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.Properties;
-import java.util.logging.Level;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
@@ -32,28 +28,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ecs.Element;
 import org.apache.ecs.xhtml.a;
-import org.apache.ecs.xhtml.base;
 import org.apache.ecs.xhtml.body;
 import org.apache.ecs.xhtml.div;
-import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.head;
-import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.link;
-import org.apache.ecs.xhtml.script;
-import org.apache.ecs.xhtml.table;
-import org.apache.ecs.xhtml.td;
-import org.apache.ecs.xhtml.tr;
-import org.compiere.model.MForm;
 import org.compiere.model.MTree;
 import org.compiere.model.MTreeNode;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
-import org.compiere.util.KeyNamePair;
-import org.compiere.util.Login;
 import org.compiere.util.Msg;
 
 /**

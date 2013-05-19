@@ -45,6 +45,51 @@
             class="org.compiere.mobile.WStatus"
             httpcontextId="org.idempiere.mobile">
       </servlet>
+      <servlet
+            alias="/WError"
+            class="org.compiere.mobile.WError"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WFieldUpdate"
+            class="org.compiere.mobile.WFieldUpdate"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WFindAdv"
+            class="org.compiere.mobile.WFindAdv"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WZoom"
+            class="org.compiere.mobile.WZoom"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WWorkflow"
+            class="org.compiere.mobile.WWorkflow"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WTask"
+            class="org.compiere.mobile.WTask"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WLookup"
+            class="org.compiere.mobile.WLookup"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WLocation"
+            class="org.compiere.mobile.WLocation"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
+      <servlet
+            alias="/WHelp"
+            class="org.compiere.mobile.WHelp"
+            httpcontextId="org.idempiere.mobile">
+      </servlet>
    </extension>
 
 </plugin>

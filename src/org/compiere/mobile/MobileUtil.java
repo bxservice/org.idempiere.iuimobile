@@ -557,7 +557,7 @@ public final class MobileUtil
 		if (cookieProperties != null)
 		{
 			Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, propertiesEncode(cookieProperties));
-			cookie.setComment("(c) adempiere, Inc - Jorg Janke");
+			cookie.setComment("iDempiere Free ERP");
 			cookie.setSecure(false);
 			cookie.setPath("/");
 			if (cookieProperties.size() == 0)
