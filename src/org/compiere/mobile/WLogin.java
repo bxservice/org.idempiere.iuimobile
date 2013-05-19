@@ -22,7 +22,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -59,7 +58,6 @@ import org.compiere.util.Language;
 import org.compiere.util.Login;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
-import org.compiere.util.ValueNamePair;
 
 /**
  *  Web Login Page.
@@ -279,69 +277,41 @@ public class WLogin extends HttpServlet
 		else
 		{
 			//  Get Parameters:     UserName/Password
-			String usr = MobileUtil.getParameter (request, P_USERNAME);
+			APP_USER = MobileUtil.getParameter (request, P_USERNAME);
 			String pwd = MobileUtil.getParameter (request, P_PASSWORD);
 			//  Get Principle
 			Principal userPrincipal = request.getUserPrincipal();
-			log.info("Principal=" + userPrincipal + "; User=" + usr);
-
+			log.info("Principal=" + userPrincipal + "; User=" + APP_USER);
+			
 			//  Login info not from request and not pre-authorized
-			if (userPrincipal == null && (usr == null || pwd == null))
+			if (userPrincipal == null && (APP_USER == null || pwd == null))
 				doc = createFirstPage (cProp, request, "");
 			//  Login info from request or authorized
 			else
 			{
-				KeyNamePair[] roles = null;
+//TODO red1 here starts the need to swap Role with Client DONE
+				KeyNamePair[] clients = null;
 				Login login = new Login(wsc.ctx);
 				//  Pre-authorized
 				if (userPrincipal != null)
 				{
-					roles = login.getRoles(userPrincipal);
-					usr = userPrincipal.getName();
+					KeyNamePair[] rl = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc,
+					clients = login.getClients (APP_USER,pwd);
+					APP_USER = userPrincipal.getName();
 				}
-				else
-					roles = login.getRoles(usr, pwd);
+				else {
+					KeyNamePair[] rl = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
+					clients = login.getClients (APP_USER,pwd);
+				}
 				//
-				if (roles == null)
+				if (clients == null)
 					doc = createFirstPage(cProp, request, Msg.getMsg(wsc.ctx, "UserPwdError"));
 				else
 				{
-					
-					String sql = "SELECT AD_Role_ID, Name FROM AD_Role WHERE IsMobileAccessible='Y'";
-					
-					ArrayList<KeyNamePair> validRoles= new ArrayList();
-					try {
-
-						ValueNamePair[] mobileRoles = DB.getValueNamePairs(sql, false, null);
-
-						for ( KeyNamePair role1 : roles)
-						{
-							for (ValueNamePair mobileRole : mobileRoles )
-							{
-								if ( role1.getKey() == Integer.parseInt(mobileRole.getValue()))
-								{
-									validRoles.add(role1);
-									break;
-								}
-							}
-						}
-						roles = new KeyNamePair[validRoles.size()];
-						roles = validRoles.toArray(roles);
-					}
-					catch (Exception e) {
-						// IsMobileAccessible not supported, allow any role
-					}
-					
-					cProp.setProperty(P_USERNAME, usr);
-					cProp.setProperty(Env.LANGUAGE, language);
-				
-					
-					if (roles.length == 0)
-						doc = createFirstPage(cProp, request, Msg.getMsg(wsc.ctx, "UserPwdError"));
-					else 
+				 
 					{
-						String roleData=(cProp.getProperty(P_ROLE, null));
-						doc = createSecondPage(cProp, request, MobileUtil.convertToOption(roles, roleData), "");
+						String roleData=(cProp.getProperty(P_CLIENT, null));
+						doc = createSecondPage(cProp, request, clients, roleData, APP_USER, "");
 						//	Create adempiere Session - user id in ctx
 						MSession.get (wsc.ctx, request.getRemoteAddr(), 
 								request.getRemoteHost(), sess.getId() );
@@ -368,7 +338,7 @@ public class WLogin extends HttpServlet
 	protected static final String   P_ERRORMSG      = "ErrorMessage";
 	protected static final String   P_STORE         = "SaveCookie";
 	protected static final String	P_LANGUAGE			= "Language";
-
+	protected static String APP_USER = "";
 	/**
 	 *  Check Login information and set context.
 	 *  @return    true if login info are OK
@@ -468,11 +438,10 @@ public class WLogin extends HttpServlet
 		div1.setClass("row");
 		
 		//	Username
-		String userData = cProp.getProperty(P_USERNAME, "");
 		label usrLabel = new label().setFor(P_USERNAME + "F").addElement(usrText);
 		usrLabel.setID(P_USERNAME + "L");
 		div1.addElement(usrLabel);
-		input usr = new input(input.TYPE_TEXT, P_USERNAME, userData).setSize(20).setMaxlength(30);
+		input usr = new input(input.TYPE_TEXT, P_USERNAME, APP_USER).setSize(20).setMaxlength(30);
 		usr.setID(P_USERNAME + "F");
 		div1.addElement(usr);
 		fs.addElement(div1);
@@ -578,12 +547,14 @@ public class WLogin extends HttpServlet
 	 *  @return WDoc page
 	 */
 	private MobileDoc createSecondPage(Properties cProp, HttpServletRequest request,
-		option[] roleOptions, String errorMessage)
+		KeyNamePair[] clients, String roleData, String usr, String errorMessage)
 	{
 		log.info(" - " + errorMessage);
 		MobileSessionCtx wsc = MobileSessionCtx.get(request);
 		String windowTitle = Msg.getMsg(wsc.language, "Login");
-
+		// make option[]
+		option[] clientOptions = MobileUtil.convertToOption(clients, roleData);
+		
 		//	Form - Get Menu
 		String action = MobileEnv.getBaseDirectory("WLogin");
 		form myForm = new form(action).setName("Login2");
@@ -594,43 +565,42 @@ public class WLogin extends HttpServlet
 		myForm.setMethod("post");
 		myForm.setTarget("_self");
 		
-		//	Role Pick
+		//	CLient Pick
 		fieldset fs = new fieldset();
 		div div1 = new div();
 		div1.setClass("row");
 		//Modified by Rob Klein 4/29/07
-		label roleLabel = new label().setFor(P_ROLE + "F").addElement(Msg.translate(wsc.language, "AD_Role_ID"));
-		roleLabel.setID(P_ROLE + "L");
-		div1.addElement(roleLabel);
-		select role = new select(P_ROLE, roleOptions);
-		role.setID(P_ROLE + "F");
-		role.setOnChange("loginDynUpdate(this);");        		//  sets Client & Org
-		div1.addElement(role);
-		fs.addElement(div1);
-		
-		Login login = new Login(wsc.ctx);
-		//  Get Data
-		KeyNamePair[] clients = null;
-		if (roleOptions.length > 0)
-			clients = login.getClients ( 
-			new KeyNamePair(Integer.parseInt(roleOptions[0].getAttribute("value")) , roleOptions[0].getAttribute("value")));
-
-		//	Client Pick
-		div1 = new div();
-		div1.setClass("row");
 		label clientLabel = new label().setFor(P_CLIENT + "F").addElement(Msg.translate(wsc.language, "AD_Client_ID"));
 		clientLabel.setID(P_CLIENT + "L");
 		div1.addElement(clientLabel);
-		select client = new select(P_CLIENT, MobileUtil.convertToOption(clients, null));
+		select client = new select(P_CLIENT, clientOptions);
 		client.setID(P_CLIENT + "F");
-		div1.addElement(new td().addElement(client));
+		client.setOnChange("loginDynUpdate(this);");        		//  sets Client & Org
+		div1.addElement(client);
+		fs.addElement(div1);
+		Env.setContext(wsc.ctx, Env.AD_CLIENT_ID, clients[0].getKey()); //red1 
+
+		Login login = new Login(wsc.ctx);
+		//  Get Data
+		KeyNamePair[] roles = null;
+		if (clientOptions.length > 0)
+			roles = login.getRoles(APP_USER, clients[0]);
+		//	Role Pick
+		div1 = new div();
+		div1.setClass("row");
+		label roleLabel = new label().setFor(P_ROLE + "F").addElement(Msg.translate(wsc.language, "AD_Role_ID"));
+		roleLabel.setID(P_ROLE + "L");
+		div1.addElement(roleLabel);
+		select role = new select(P_ROLE, MobileUtil.convertToOption(roles, null));
+		role.setID(P_ROLE + "F");
+		div1.addElement(new td().addElement(role));
 		fs.addElement(div1);
 
 		KeyNamePair[] orgs = null;
 		if ( clients.length > 0 )
 			{
-				Env.setContext(wsc.ctx, "#AD_Client_ID", clients[0].getKey());
-				orgs = login.getOrgs (new KeyNamePair(Integer.parseInt(roleOptions[0].getAttribute("value")) , roleOptions[0].getAttribute("value")));
+				
+				orgs = login.getOrgs (roles[0]);
 			}
 		
 		//	Org Pick
