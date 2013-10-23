@@ -143,7 +143,8 @@ public class WMenu extends HttpServlet
 		int AD_User_ID = Env.getAD_User_ID(wsc.ctx);
 		int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
 		int AD_Client_ID = Env.getAD_Client_ID(wsc.ctx);
-		int AD_Org_ID = Env.getAD_Client_ID(wsc.ctx);
+		int AD_Org_ID = Env.getAD_Client_ID(wsc.ctx); 
+		String AD_Language = Env.getAD_Language(wsc.ctx);
 
 		if ( wsc.loginInfo != null && wsc.loginInfo.length() > 0 )
 		{
@@ -328,9 +329,9 @@ public class WMenu extends HttpServlet
 			}
 			else
 				servletName = "WError";
-
-			String name = node.getName().replace('\'',' ').replace('"',' ');
-			String description = node.getDescription().replace('\'',' ').replace('"',' ');
+//TODO getTranslation
+			String name = Msg.getMsg(ctx, node.getName().replace('\'',' ').replace('"',' '));
+			String description = Msg.getMsg(ctx, node.getDescription().replace('\'',' ').replace('"',' '));
 			//
 			sb.append("<li class=\"" + cssClassName
 				+ "\" id=\"" + node.getNode_ID()			//	debug
