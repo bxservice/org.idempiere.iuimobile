@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -49,6 +50,7 @@ import org.apache.ecs.xhtml.script;
 import org.apache.ecs.xhtml.select;
 import org.apache.ecs.xhtml.strong;
 import org.apache.ecs.xhtml.td;
+import org.compiere.model.MRole;
 import org.compiere.model.MSession;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -185,7 +187,6 @@ public class WLogin extends HttpServlet
 		String role = MobileUtil.getParameter (request, WLogin.P_ROLE);
 		String client = MobileUtil.getParameter (request, WLogin.P_CLIENT);
 		String org = MobileUtil.getParameter (request, WLogin.P_ORG);
-		String language = MobileUtil.getParameter(request, Env.LANGUAGE);
 		if ( role != null && client != null && org != null )
 		{
 			//  Get Info from Context - User, Role, Client
@@ -248,6 +249,7 @@ public class WLogin extends HttpServlet
 
 			cProp.setProperty(P_ROLE, Integer.toString(AD_Role_ID));
 			cProp.setProperty(P_ORG, Integer.toString(AD_Org_ID));
+			cProp.setProperty(Env.LANGUAGE, wsc.language.getAD_Language());
 			/*
 			RequestDispatcher rd = getServletContext().getRequestDispatcher("/WMenu");
 			rd.forward(request, response);
@@ -582,16 +584,27 @@ public class WLogin extends HttpServlet
 
 		Login login = new Login(wsc.ctx);
 		//  Get Data
-		KeyNamePair[] roles = null;
-		if (clientOptions.length > 0)
+		KeyNamePair[] roles = null; // the full list of roles
+		KeyNamePair[] mobileRoles = null; // roles enabled for mobile access
+		ArrayList<KeyNamePair> mobileRolesList = new ArrayList<KeyNamePair>();
+		if (clientOptions.length > 0) {
 			roles = login.getRoles(APP_USER, clients[0]);
+
+			//TODO  Only keep roles that are not designed for mobile
+			for (int i = 0; i < roles.length; i++) {
+				if (new MRole(Env.getCtx(), roles[i].getKey(), null).get_ValueAsBoolean("IsMobileEnabled")) 
+					mobileRolesList.add(roles[i]);
+			}
+			mobileRoles = new KeyNamePair[mobileRolesList.size()];
+			mobileRolesList.toArray(mobileRoles);
+		}
 		//	Role Pick
 		div1 = new div();
 		div1.setClass("row");
 		label roleLabel = new label().setFor(P_ROLE + "F").addElement(Msg.translate(wsc.language, "AD_Role_ID"));
 		roleLabel.setID(P_ROLE + "L");
 		div1.addElement(roleLabel);
-		select role = new select(P_ROLE, MobileUtil.convertToOption(roles, null));
+		select role = new select(P_ROLE, MobileUtil.convertToOption(mobileRoles, null));
 		role.setID(P_ROLE + "F");
 		div1.addElement(new td().addElement(role));
 		fs.addElement(div1);

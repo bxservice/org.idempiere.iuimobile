@@ -3,6 +3,7 @@
  */
 package org.idempiere.mobile;
 
+import org.adempiere.plugin.utils.AdempiereActivator;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -10,7 +11,7 @@ import org.osgi.framework.BundleContext;
  * @author hengsin
  *
  */
-public class Activator implements BundleActivator {
+public class Activator extends AdempiereActivator {
 	
 	static BundleContext bundleContext;
 	
@@ -26,6 +27,7 @@ public class Activator implements BundleActivator {
 	@Override
 	public void start(BundleContext context) throws Exception {
 		bundleContext = context;
+		super.start(context);
 	}
 
 	/* (non-Javadoc)
@@ -34,6 +36,7 @@ public class Activator implements BundleActivator {
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		bundleContext = null;
+		super.stop(context);
 	}
 
 }
