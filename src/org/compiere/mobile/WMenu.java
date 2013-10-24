@@ -329,9 +329,9 @@ public class WMenu extends HttpServlet
 			}
 			else
 				servletName = "WError";
-//TODO getTranslation
-			String name = Msg.getMsg(ctx, node.getName().replace('\'',' ').replace('"',' '));
-			String description = Msg.getMsg(ctx, node.getDescription().replace('\'',' ').replace('"',' '));
+
+			String name =  node.getName().replace('\'',' ').replace('"',' ') ;
+			String description =  node.getDescription().replace('\'',' ').replace('"',' ');
 			//
 			sb.append("<li class=\"" + cssClassName
 				+ "\" id=\"" + node.getNode_ID()			//	debug
