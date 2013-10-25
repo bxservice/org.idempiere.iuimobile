@@ -468,6 +468,7 @@ public class WLogin extends HttpServlet
 		label langLabel = new label().setFor(Env.LANGUAGE + "F").addElement(lngText);
 		langLabel.setID(Env.LANGUAGE + "L");
 		div1.addElement(langLabel);
+		Env.getLoginLanguages(); // to fill the s_language array on Language
 		option options[] = new option[Language.getLanguageCount()];
 		for (int i = 0; i < Language.getLanguageCount(); i++)
 		{
