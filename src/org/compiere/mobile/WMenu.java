@@ -263,9 +263,6 @@ public class WMenu extends HttpServlet
 		buf.append("<ul><li class=\"menuSummary\" id=\"218\" onClick=\"changeMenu(event);\">Favorites<ul style=\"display:none\">\n");
 		buf.append(buffav);
 		buf.append("</ul></li></ul>\n");
-		
-		
-		
 		body.addElement(buf.toString());
 
 		body.addElement(div);
