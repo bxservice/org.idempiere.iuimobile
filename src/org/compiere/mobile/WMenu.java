@@ -205,7 +205,7 @@ public class WMenu extends HttpServlet
 		anchor.setClass("button");
 		anchor.setHref(request.getRequestURI()+"?Exit=true");
 		anchor.setTarget("_self");
-		anchor.addElement("Logout");
+		anchor.addElement(Msg.getMsg(wsc.language, "iuimobile.Logout"));
 		div.addElement(anchor);
 		
 		

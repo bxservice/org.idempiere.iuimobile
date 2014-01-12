@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Enumeration;
+import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.servlet.ServletConfig;
@@ -887,7 +888,7 @@ public class WWindow extends HttpServlet
 		line.addAttribute("selected", "true");
 		line.setClass("panel");
 		line.setMethod("post");
-		line.setTitle(ws.curTab.getName());
+		line.setTitle(ws.curTab.getName()); // TODO translate tab name
 		// line.setTarget("_self");
 		
 		fs = new fieldset();
@@ -1198,9 +1199,12 @@ public class WWindow extends HttpServlet
 		anchor.addElement("Menu");
 		div.addElement(anchor);
 
+		
+
 		if ( !firstPage )
 		{
-			anchor = new a("WWindow?action=previous", "Back");
+			//anchor = new a("WWindow?action=previous", "Back");
+			anchor = new a("WWindow?action=previous", Msg.getMsg(wsc.language, "iuimobile.Back"));
 			anchor.setID("previousButton");
 			anchor.setClass("button");
 			anchor.setTarget("_self");
@@ -1209,14 +1213,14 @@ public class WWindow extends HttpServlet
 		
 		div div2 = new div();
 		div2.setClass("footer");
-		anchor = new a("WFindAdv", "Find");
+		anchor = new a("WFindAdv", Msg.getMsg(wsc.language, "iuimobile.Find"));
 		anchor.setID("findButton");
 		anchor.setClass("blueButton");
 		div2.addElement(anchor);
 		
 		if ( !ws.curTab.isReadOnly() &&  ws.curTab.isInsertRecord() && ws.isReadOnlyView() )
 		{
-			a a = new a("WWindow?action=insert", "New record");
+			a a = new a("WWindow?action=insert", Msg.getMsg(wsc.language, "iuimobile.NewRecord"));
 			a.setClass("redButton");
 			a.setTarget("_self");
 			div2.addElement(a);
