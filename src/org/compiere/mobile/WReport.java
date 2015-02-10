@@ -26,6 +26,7 @@ import java.util.logging.Level;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +56,10 @@ import org.compiere.util.WebUtil;
 *  @author Jorg Janke
 *  @version $Id: WReport.java,v 1.1 2009/04/15 11:27:15 vinhpt Exp $
 */
+@WebServlet(
+		name="WReport",
+        urlPatterns = "/WReport"
+)
 public class WReport extends HttpServlet
 {
 	/**
