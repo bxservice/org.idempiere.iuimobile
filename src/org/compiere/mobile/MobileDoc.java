@@ -78,7 +78,7 @@ public class MobileDoc
 		doc.getHead().addElement(new link("images/AdempiereButton.png", "apple-touch-icon-precomposed", "image/png"));
 		doc.getHead().addElement(new link("images/AdempiereButton.png", "shortcut icon", "image/png"));
 		doc.getHead().addElement(new meta().setName("viewport")
-				.setContent("width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"));	
+				.setContent("width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"));	
 		
 		return doc;
 	}   //  createPopup
@@ -102,7 +102,7 @@ public class MobileDoc
 		doc.getHead().addElement(new link("images/AdempiereButton.png", "apple-touch-icon-precomposed", "image/png"));
 		doc.getHead().addElement(new link("images/AdempiereButton.png", "shortcut icon", "image/png"));
 		doc.getHead().addElement(new meta().setName("viewport")
-				.setContent("width=device-width; initial-scale=1.0; minimum-scale=1.0; maximum-scale=1.0; user-scalable=0;"));
+				.setContent("width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=0"));
 		return doc;
 	}   //  createWindow
 

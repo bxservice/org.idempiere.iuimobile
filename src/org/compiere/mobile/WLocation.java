@@ -150,8 +150,9 @@ public class WLocation extends HttpServlet
 			location = new MLocation(ws.ctx, 0,null);
 
 		//String targetBase = "parent.WWindow." + WWindow.FORM_NAME + "." + columnName;
-		String targetBase = "opener.WWindow." + WWindow.FORM_NAME + "." + columnName;
-                String action = request.getRequestURI();
+		//String targetBase = "opener.document." + WWindow.FORM_NAME + "." + columnName;
+		String targetBase = "opener.document.forms[0]." + columnName;
+        String action = request.getRequestURI();
 		//  Create Document
 		MobileDoc doc = MobileDoc.createPopup (mField.getHeader());
 		boolean hasDependents = ws.curTab.hasDependants(columnName);
@@ -204,8 +205,8 @@ public class WLocation extends HttpServlet
 			return;
 		}
 		int C_Location_ID = MobileUtil.getParameterAsInt(request, P_C_LOCATION_ID);
-		String targetBase = "opener.WWindow." + WWindow.FORM_NAME + ".C_Location_ID";
-
+		String targetBase = "opener.document.forms[0].C_Location_ID";
+		
 		//  Create Location
 		MLocation location = new MLocation(ws.ctx, C_Location_ID,null);
 		log.fine("doPost updating C_Location_ID=" + C_Location_ID + " - " + targetBase);
@@ -220,25 +221,27 @@ public class WLocation extends HttpServlet
                 location.setC_Region_ID (MobileUtil.getParameterAsInt(request, P_C_REGION_ID));
                 System.out.println("location =========== "+location);
 		//  Document
-		MobileDoc doc = MobileDoc.createPopup ("WLocation");
+		//MobileDoc doc = MobileDoc.createWindow("WLocation");
 
 		//  Save Location
 		location.saveEx();
 		C_Location_ID = location.getC_Location_ID();
+		response.getWriter().write(Integer.toString(C_Location_ID)+"|"+ location.toString());
 
-		if (C_Location_ID == 0)
-			doc.getBody().addElement(new p(new b("ERROR - Location=0")));
-		doc.getBody().addElement(new p().addElement(location.toString()));
+		//if (C_Location_ID == 0)
+		//	doc.getBody().addElement(new p(new b("ERROR - Location=0")));
+		//doc.getBody().addElement(new p().addElement(location.toString()));
 
 		//  Update Target
-		script script = new script(new StringBuffer()
-			.append(targetBase).append("D.value='").append(C_Location_ID).append("';")
-			.append(targetBase).append("F.value='").append(location.toString())
-			.append("';closePopup();").toString());
-		doc.getBody().addElement(script);
-		log.fine("script=" + script.toString());
+		//script script = new script(new StringBuffer()
+		//	.append(targetBase).append("D.value='").append(C_Location_ID).append("';")
+		//	.append(targetBase).append("F.value='").append(location.toString())
+		//	.append("';closePopup();").toString());
+			//.append("';window.close();").toString());
+		//doc.getBody().addElement(script);
+		//log.fine("script=" + script.toString());
 		//
-                form myForm = null;
+        /*        form myForm = null;
 		myForm = new form ();
                 table table = new table();
 		table.setID("WLocation");
@@ -255,8 +258,8 @@ public class WLocation extends HttpServlet
                 table.addElement(button);
                 myForm.addElement(table);
                 doc.getBody().addElement(myForm);
-
-		MobileUtil.createResponse(request, response, this, null, doc, true);
+*/
+		//MobileUtil.createResponse(request, response, this, null, doc, true);
 	}   //  doPost
 
 	/**
@@ -356,15 +359,22 @@ public class WLocation extends HttpServlet
 		
 		//  Submit
 		StringBuffer script = new StringBuffer();
-		script.append(targetBase).append("D.value='").append("temp").append("';")
+		//script.append(targetBase).append("D.value='").append("temp").append("';")
 		//script.append(targetBase).append("D.value='").append("';")
-		.append(targetBase).append("F.value='").append("temp")
+		//.append(targetBase).append("F.value='").append("temp")
 		//.append(targetBase).append("F.value='")
-		.append("';submit();closePopup();");
+		//.append("';submit();closePopup();");
+		//.append("';submit();");
+		//alert(opener.document.forms[0].NameF.value);
+		script.append("saveLocation()");
+		
 
-
-		a button = new a("#", "Submit");
-		button.addAttribute("type", "submit");
+		StringBuffer script2 = new StringBuffer();
+		script2.append("alert(opener.document.forms[0].C_Location_ID.id) ");
+		
+		input button = new input("buttom","save",Msg.getMsg(ws.ctx, "save"));
+		//a button = new a("#",Msg.getMsg(ws.ctx, "save"));
+		//button.addAttribute("type", "submit");
 		button.setClass("whiteButton");
 		button.setOnClick(script.toString());
 		line.addElement(button);

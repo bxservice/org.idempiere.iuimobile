@@ -18,6 +18,7 @@ package org.compiere.mobile;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -35,6 +36,7 @@ import org.apache.ecs.xhtml.div;
 import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.head;
 import org.apache.ecs.xhtml.link;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTree;
 import org.compiere.model.MTreeNode;
 import org.compiere.util.CLogger;
@@ -84,7 +86,7 @@ public class WMenu extends HttpServlet
 	 */
 	public String getServletInfo ()
 	{
-		return "adempiere Web Menu";
+		return "iDempiere Web Menu";
 	} // getServletInfo
 
 	/**
@@ -210,7 +212,7 @@ public class WMenu extends HttpServlet
 		anchor.setClass("button");
 		anchor.setHref(request.getRequestURI()+"?Exit=true");
 		anchor.setTarget("_self");
-		anchor.addElement(Msg.getMsg(wsc.language, "iuimobile.Logout"));
+		anchor.addElement(Msg.getMsg(wsc.language, "Logout"));
 		div.addElement(anchor);
 		
 		
@@ -285,7 +287,12 @@ public class WMenu extends HttpServlet
 	private StringBuffer printNode (MTreeNode node, Properties ctx)
 	{
 		StringBuffer sb = new StringBuffer();
-		
+		//get theme from sys conf
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		String zk_theme_value=MSysConfig.getValue("ZK_THEME");
+		String imgName=null;
+    	
 		//  Leaf
 		if (!node.isSummary())
 		{			
@@ -298,6 +305,7 @@ public class WMenu extends HttpServlet
 			{
 				cssClassName = "menuWindow";
 				servletName = "WWindow";
+				imgName = "mWindow.png";
 			}
 			else if (node.isForm())
 			{
@@ -311,11 +319,14 @@ public class WMenu extends HttpServlet
 			{
 				cssClassName = "menuReport";
 				servletName = "WProcess";
+				imgName = "mReport.png";
+				
 			}
 			else if (node.isProcess())
 			{
 				cssClassName = "menuProcess";
 				servletName = "WProcess";
+				imgName = "mProcess.png";
 			}
 			else if (node.isWorkFlow())
 			{
@@ -337,7 +348,10 @@ public class WMenu extends HttpServlet
 			//
 			sb.append("<li class=\"" + cssClassName
 				+ "\" id=\"" + node.getNode_ID()			//	debug
-				+ "\"><a href=\"");
+				+ "\">" +
+				"<img src=\"/webui/theme/"+zk_theme_value+"/images/"+imgName+"\" class=\"menuImage\">" +
+						
+						"<a href=\"");
 			//	Get URL
 			boolean standardURL = true;
 			/* form not supported
@@ -357,7 +371,8 @@ public class WMenu extends HttpServlet
 					.append(node.getNode_ID());
 			}
 			//	remaining a tag
-			sb.append("\" class=\"whiteButton\" target=\"_self\" title=\"" + description 
+			//sb.append("\" class=\"whiteButton\" target=\"_self\" title=\"" + description 
+			sb.append("\" target=\"_self\" title=\"" + description
 					+ "\">")
 				.append(name)		//	language set in MTree.getNodeDetails based on ctx
 				.append("</a></li>\n");
@@ -365,7 +380,7 @@ public class WMenu extends HttpServlet
 		else
 		{
 			String name = node.getName().replace('\'',' ').replace('"',' ');
-			sb.append("\n<li><a href=\"#" + node.getNode_ID() + "\">")
+			sb.append("\n<li class=\"menuSummary\"><a href=\"#" + node.getNode_ID() + "\">")
 				.append(name)
 				.append("</a></li>\n");
 		}
