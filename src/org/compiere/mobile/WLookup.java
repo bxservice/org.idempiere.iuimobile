@@ -37,6 +37,7 @@ import org.apache.ecs.xhtml.div;
 import org.apache.ecs.xhtml.fieldset;
 import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
+import org.apache.ecs.xhtml.img;
 import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
@@ -51,6 +52,8 @@ import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
+
+
 
 /**
  *  WLookup Servlet.
@@ -93,7 +96,8 @@ public class WLookup extends HttpServlet
 	private String[] m_searchLabels;
 	
 	private StringBuffer m_HeaderSelect = null;
-	
+	private MobileSessionCtx wsc=null;
+	WWindowStatus ws=null;
 	/**
 	 * Initialize global variables
 	 *
@@ -123,8 +127,8 @@ public class WLookup extends HttpServlet
 		MobileEnv.dump(request.getSession());
 		//Modified by Rob Klein 4/29/07
 		//
-		MobileSessionCtx wsc = MobileSessionCtx.get(request);
-		WWindowStatus ws = WWindowStatus.get(request);		
+		wsc = MobileSessionCtx.get(request);
+		ws = WWindowStatus.get(request);		
 		
 		if (wsc == null)
 		{
@@ -209,7 +213,7 @@ public class WLookup extends HttpServlet
 			getSearchFields(columnName, refValueId);
 		}
 		
-		String search = MobileUtil.getParameter (request, "search") ;
+		//String search = MobileUtil.getParameter (request, "search") ;
 
 		if ( Util.isEmpty(MobileUtil.getParameter (request, "search") ) )
 		{
@@ -227,12 +231,12 @@ public class WLookup extends HttpServlet
 			h1 h = new h1(header);
 			set.addElement(h);
 			
-			a a = new a("#", "Cancel");
+			a a = new a("#", Msg.getMsg(wsc.language, "Cancel"));
 			a.addAttribute("type", "cancel");
 			a.setClass("button leftButton");
 			set.addElement(a);
 			
-			a = new a("WLookup?ColumnName=" + columnName+"&AD_Process_ID="+AD_Process_ID, "Search");
+			a = new a("WLookup?ColumnName=" + columnName+"&AD_Process_ID="+AD_Process_ID, Msg.getMsg(wsc.language, "search"));
 			a.addAttribute("type", "submit");
 			a.setClass("button");
 			set.addElement(a);
@@ -315,16 +319,20 @@ public class WLookup extends HttpServlet
 
 
 	private void getSearchFields(String columnName, int refValueId) {
+		//HttpServletRequest request = null;
+		//MobileSessionCtx wsc = MobileSessionCtx.get(request);
 		String sqlSelect = null;
 		
 		if (refValueId > 0)
-			sqlSelect = "SELECT ColumnName, Name FROM AD_Column" +
+			sqlSelect = "SELECT AD_Column.ColumnName, CASE WHEN AD_Column_Trl.Name is null THEN AD_Column.Name ELSE AD_Column_Trl.Name END as Name FROM AD_Column left join AD_Column_Trl " +
+					" ON AD_Column.AD_Column_ID=AD_Column_Trl.AD_Column_ID  AND AD_Column_Trl.ad_language='" + Env.getAD_Language(wsc.ctx)  +"' "+
 					" WHERE AD_Table_ID IN (SELECT AD_Table_ID FROM AD_Ref_Table WHERE AD_Reference_ID = " + refValueId + ")" +
 					" AND (IsSelectionColumn = 'Y' OR ColumnName LIKE '%Name%') AND AD_Reference_ID IN " +
 					" (" + DisplayType.String + "," + DisplayType.Text +")" +
 					" ORDER BY SEQNO";			
 		else	
-			sqlSelect = "SELECT ColumnName, Name FROM AD_Column " +
+			sqlSelect = "SELECT AD_Column.ColumnName, CASE WHEN AD_Column_Trl.Name is null THEN AD_Column.Name ELSE AD_Column_Trl.Name END as Name FROM AD_Column left join AD_Column_Trl " +
+					" ON AD_Column.AD_Column_ID=AD_Column_Trl.AD_Column_ID  AND AD_Column_Trl.ad_language='" + Env.getAD_Language(wsc.ctx)  +"' "+
 					" WHERE AD_Table_ID IN (SELECT AD_Table_ID FROM AD_Table WHERE TableName = '" + columnName.replace("_ID", "") + "') " +
 					" AND (IsSelectionColumn = 'Y' OR ColumnName LIKE '%Name%') AND AD_Reference_ID IN " +
 					" (" + DisplayType.String + "," + DisplayType.Text +")" +
@@ -453,8 +461,8 @@ public class WLookup extends HttpServlet
 						
 				if (rs.next()){					
 					tableID = rs.getInt(1);	
-					
-					whereClause = whereClause + rs.getString(4);
+					if(whereClause!=null) whereClause = whereClause +" " + rs.getString(4);
+					else whereClause = rs.getString(4);
 					orderBy = rs.getString(5);
 					sql="Select ColumnName FROM AD_Column Where AD_Column_ID = ? AND AD_Table_ID = " + tableID;
 					colKey = DB.getSQLValueString(null, sql, rs.getInt(2));
@@ -474,8 +482,8 @@ public class WLookup extends HttpServlet
 			sqlCount=new StringBuffer ( "SELECT count(*) FROM " + tableName + " WHERE AD_Client_ID=?");
 			
 			if (whereClause != null){
-				sqlSelect.append(" AND " + whereClause).append(where);
-				sqlCount.append(" AND " + whereClause).append(where);
+				sqlSelect.append(" AND " + Env.parseContext(wsc.ctx,ws.getWindowNo() , whereClause, false)).append(where);
+				sqlCount.append(" AND " + Env.parseContext(wsc.ctx,ws.getWindowNo() , whereClause, false)).append(where);
 			}
 			if (orderBy != null)
 				sqlSelect.append(" ORDER BY " + orderBy);
@@ -503,11 +511,14 @@ public class WLookup extends HttpServlet
 			log.info("This is the page number "+page);
 			log.info("This is the MAX_LINES "+MAX_LINES);
 			//rs.absolute(((page-1)*MAX_LINES)+1);			
-			
+			img img=new img();
+			img.setSrc("/mobile/iui/listArrowSel.png");
 			//for (int j= 1; j<= MAX_LINES; j++){
 				while(rs.next()){
 					button button = new button();
-					button.addElement("&gt;");
+					//button.addElement("&gt;");
+					button.addElement(img);
+					
 					StringBuffer script = new StringBuffer();
 					script
 						.append("startLookUpdate(").append(targetBase).append("D',")
@@ -520,7 +531,7 @@ public class WLookup extends HttpServlet
 					line.addElement(new td(button));				
 					//line.addElement(new td(rs.getString(i)));
 					
-					for (int i = 1; i <=m_colCount; i++)
+					for (int i = 2; i <=m_colCount; i++)
 					{								
 						line.addElement(new td(rs.getString(i)));
 					}
@@ -570,7 +581,7 @@ public class WLookup extends HttpServlet
 		if(firstHeaderLine) {
 			line.addElement(new th());
 			m_HeaderSelect = new StringBuffer(columnName);
-			line.addElement(new th(columnName));
+			//line.addElement(new th(columnName));
 			m_colCount=1;
 		} 
 		
@@ -586,7 +597,11 @@ public class WLookup extends HttpServlet
 				if(col.equals("Value")||col.equals("DocumentNo")||col.equals("Name")||col.equals("Description")){
 					if(firstHeaderLine){						
 						line.addElement(new th(rs.getString(2)));
-						m_HeaderSelect.append(",").append(col);
+						//if(m_colCount==1){
+						//	m_HeaderSelect = new StringBuffer(col);
+						//}else{
+							m_HeaderSelect.append(",").append(col);
+						//}
 						m_colCount++;
 					}
 				}

@@ -53,6 +53,7 @@ import org.apache.ecs.xhtml.strong;
 import org.apache.ecs.xhtml.td;
 import org.compiere.model.MRole;
 import org.compiere.model.MSession;
+import org.compiere.model.MSysConfig;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -417,15 +418,26 @@ public class WLogin extends HttpServlet
 	 *  @param request request
 	 *  @param errorMessage error message
 	 *  @return WDoc page
+	 *  
 	 */
 	private MobileDoc createFirstPage(Properties cProp, HttpServletRequest request,
 		String errorMessage)
 	{
+		/** 
+		 * Check if login is by user or by email
+		 */
+		
+		
+		
+		//config=new MSysConfig(Env.getCtx(), AD_SysConfig_ID, trxName)
 		log.info (" - " + errorMessage);
 		String AD_Language = (cProp.getProperty(Env.LANGUAGE, Language.getAD_Language(request.getLocale())));
 		//
 		String windowTitle = Msg.getMsg(AD_Language, "Login");
 		String usrText = Msg.getMsg(AD_Language, "User");
+		if(MSysConfig.getValue("USE_EMAIL_FOR_LOGIN").compareTo("Y")==0)
+			usrText = Msg.getMsg(AD_Language, "EMail");
+		
 		String pwdText = Msg.getMsg(AD_Language, "Password");
 		String lngText = Msg.translate(AD_Language, "AD_Language");
 

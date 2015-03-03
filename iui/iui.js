@@ -68,6 +68,8 @@ window.iui =
 
 	showPageByHref: function(href, args, method, replace, cb)
 	{
+		
+		//alert(href+" "+method+" "+replace+" "+cb);
 		var req = new XMLHttpRequest();
 		req.onerror = function()
 		{
@@ -96,7 +98,8 @@ window.iui =
 		{
 			req.open(method || "GET", href, true);
 			req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-			req.setRequestHeader("Content-Length", args.length);
+			//req.setRequestHeader("Content-Length", args.length);
+			//alert(args.join("&"));
 			req.send(args.join("&"));
 		}
 		else
@@ -213,6 +216,7 @@ addEventListener("click", function(event)
 			    form.submit();
 			    return;  // return so we don't preventDefault
 			}
+			if(link.getAttribute("id")=="save"){ submitFormSave(form);} 
 			submitForm(form);
 		}
 		else if (link.getAttribute("type") == "cancel")
@@ -257,6 +261,7 @@ addEventListener("click", function(event)
 		event.preventDefault();		   
 	}
 }, true);
+
 
 function getPageFromLoc()
 {
@@ -470,6 +475,15 @@ function submitForm(form)
 		form.submit();
 	else
     	iui.showPageByHref(form.action, encodeForm(form), form.method || "POST");
+}
+function submitFormSave(form)
+{
+	if (form.getAttribute("target") == "_self")
+		form.submit();
+	else{
+		form.removeAttribute("selected");
+    	iui.showPageByHref(form.action, encodeForm(form), form.method || "POST",iui.getSelectedPage());
+	}
 }
 
 

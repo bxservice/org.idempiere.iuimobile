@@ -34,8 +34,8 @@ import javax.servlet.http.HttpServletResponse;
  *  @version  $Id: WStatus.java,v 1.1 2009/04/15 11:27:15 vinhpt Exp $
  */
 @WebServlet(
-		name="WHelp",
-        urlPatterns = "/WHelp"
+		name="WStatus",
+        urlPatterns = "/WStatus"
 )
 public class WStatus extends HttpServlet
 {

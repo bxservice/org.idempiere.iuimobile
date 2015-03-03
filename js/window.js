@@ -271,12 +271,130 @@ function startLocation (columnName)
 /****************************************************************************
  *	Field Updated - submit
  */
+function encodeForm(form)
+{
+	function encode(inputs)
+	{
+		for (var i = 0; i < inputs.length; ++i)
+		{
+			if (inputs[i].name)
+				if (inputs[i].type != "checkbox" || inputs[i].checked)
+					args.push(inputs[i].name + "=" + escape(inputs[i].value));
+				else
+					args.push(inputs[i].name + "=" + escape("false"));
+		}
+	}
+
+	var args = [];
+	encode(form.getElementsByTagName("input"));
+	encode(form.getElementsByTagName("textarea"));
+	encode(form.getElementsByTagName("select"));
+	return args;	
+}
+
+function inputNumber(event){
+	var nav4=window.Event?true:false;
+	var key=nav4?event.which:event.keyCode;	
+	return (key == 44 || key == 46 || key<=13 || key==127 || (key>=48 && key<=57))
+}
 function startUpdate (column)
 {
-	//alert(column);
-	//column.form.ChangedColumn.value=column.name;
-    //	column.form.submit();
+	
+	form = document.forms[0];
+	
+	
+	if(document.getElementById("startUpdateF")!=null ){
+		document.getElementById("startUpdateF").remove();
+	}
+	var input = document.createElement("input");
+
+	input.setAttribute("type", "hidden");
+	input.setAttribute("id", "startUpdateF");
+	input.setAttribute("name", "startUpdateF");
+	if(typeof column.name!=="undefined" ){
+		input.setAttribute("value",column.name);
+	}else
+	{
+		input.setAttribute("value",column);
+	}
+	form.appendChild(input);
+	
+	iui.showPageByHref(form.action,encodeForm(form), form.method || "POST",iui.getSelectedPage());
+	
 }	//	startUpdate
+
+/********* save location by ajax **********/
+
+function openAjax()
+{ 
+	
+	var xmlhttp=false;
+	try
+	{
+		xmlhttp=new ActiveXObject("Msxml2.XMLHTTP");
+	}
+	catch(e)
+	{
+		try
+		{
+			xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		catch(E)
+		{
+			if (!xmlhttp && typeof XMLHttpRequest!='undefined') xmlhttp=new XMLHttpRequest();
+		}
+	}
+	return xmlhttp; 
+}
+
+
+
+function saveLocation(){
+	//obtenemos el formulario
+	var form=document.getElementById("Location");
+	var args=encodeForm(form);
+	//var targetBase="document.forms[0].C_Location_ID";
+	var content=openAjax();
+
+	content.open("POST", "WLocation", true);
+	content.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	content.send(args.join("&"));	
+   	content.onreadystatechange=function() 
+	{ 
+		if (content.readyState==1)
+		{
+			//monto.length=0
+			//var opcion=document.createElement("opcion")
+			//opcion.value=0
+			//opcion.innerHTML= "Cargando..."
+			//monto.appendChild(opcion)
+			//monto.disabled=true
+		}
+		if (content.readyState==4)
+		{
+			//monto.value = contenido_monto.responseText;
+			var response=content.responseText.split("|");
+			document.getElementById("C_Location_IDD").value= response[0];
+			document.getElementById("C_Location_IDD").innerHTML= response[1];
+			document.forms[0].elements["C_Location_IDF"].value= response[0];
+			document.forms[0].setAttribute("selected","true");
+			
+			document.forms[0].style.left="";
+			//form.style.display="none";
+			form.parentNode.removeChild(form);
+			
+			
+			
+			
+		}
+	}
+	
+	
+	
+}
+
+/********* save location by ajax **********/
+
 
 /****************************************************************************
  *	Lookup Field Updated - submit

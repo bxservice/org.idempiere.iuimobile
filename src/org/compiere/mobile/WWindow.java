@@ -23,7 +23,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Enumeration;
-import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.servlet.ServletConfig;
@@ -45,27 +44,18 @@ import org.apache.ecs.xhtml.li;
 import org.apache.ecs.xhtml.ul;
 // todo: chart support import org.compiere.grid.ed.ChartBuilder;
 import org.compiere.model.GridField;
-import org.compiere.model.GridFieldVO;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.Lookup;
-import org.compiere.model.MLookupFactory;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
-import org.compiere.util.KeyNamePair;
 import org.compiere.util.Msg;
 import org.compiere.util.Util;
 import org.compiere.util.ValueNamePair;
-import org.compiere.util.WebDoc;
-import org.compiere.util.WebEnv;
-import org.compiere.util.WebSessionCtx;
-import org.compiere.util.WebUtil;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.servlet.ServletUtilities;
 
 /**
  *  Web Window Servlet
@@ -151,6 +141,7 @@ public class WWindow extends HttpServlet
 
 	private HttpSession sess;
 	
+	private String startUpdate=null;
 	/**
 	 *  Process the HTTP Get request - Initial Call.
 	 *  <br>
@@ -169,6 +160,7 @@ public class WWindow extends HttpServlet
 	 */
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
+		
 		//  Get Session attributes
 		MobileDoc doc = null;
 		sess = request.getSession();
@@ -199,13 +191,33 @@ public class WWindow extends HttpServlet
 
 		String action = MobileUtil.getParameter(request, "action");
 		String strSQL=MobileUtil.getParameter(request, "txtSQL");
-		if ( "edit".equals(action) )
+		
+		
+		
+		
+	 if ( "edit".equals(action) )
 		{
 			ws.setRO(false);
 			doc = getSR_Form (request.getRequestURI(), wsc, ws);
 			//
 			log.fine("Fini");
 		//	log.trace(log.l6_Database, doc.toString());
+			MobileUtil.createResponse (request, response, this, null, doc, false);
+			return;
+		}
+		else if ( "delete".equals(action) )
+		{
+			//ws.setRO(false);
+			//doc = getSR_Form (request.getRequestURI(), wsc, ws);
+			//
+			log.fine("Deleted!");
+			//log.trace(log.l6_Database, doc.toString());
+			executeCommand(request,"Delete",wsc,ws);
+			ws.setRO(true);
+			ws.curTab.setSingleRow(false);
+			ws.curTab.query(false);
+			ws.curTab.navigate(0);
+			doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);
 			MobileUtil.createResponse (request, response, this, null, doc, false);
 			return;
 		}
@@ -449,6 +461,8 @@ public class WWindow extends HttpServlet
 			executeCommand(request, p_cmd, wsc, ws);
 		}
 		*/
+		//condition to save if is not a start update request
+		
 		
 		executeSave(request, wsc, ws);
 
@@ -610,13 +624,23 @@ public class WWindow extends HttpServlet
 	{
 		log.info("");
 		boolean error = updateFields(request, wsc, ws);
-		
+		boolean startcallouts=false;
+		String startUpdate=MobileUtil.getParamOrNull(request, "startUpdateF");
 		//  Check Mandatory
 		log.fine("Mandatory check");
 		int size = ws.curTab.getFieldCount();
 		for (int i = 0; i < size; i++)
 		{
 			GridField field = ws.curTab.getField(i);
+			if(startUpdate!=null){
+				if(startcallouts==false && field.getColumnName().compareTo(startUpdate)==0) startcallouts=true;
+				if(startcallouts){
+					if(!field.getCallout().isEmpty()){
+						ws.curTab.processCallout(field);
+						startcallouts=false;
+					}
+				}
+			}
 			if (field.isMandatory(true))        //  context check
 			{
 				Object value = field.getValue();
@@ -633,10 +657,16 @@ public class WWindow extends HttpServlet
 					field.setError(false);
 			}
 		}
-
+		
+		if(MobileUtil.getParamOrNull(request, "startUpdateF")!=null){
+		
+				error=true;		
+		}
+		
 		if (error)
 			return;
-
+		
+			
 		//  save it - of errors ignore changes
 		if (!ws.curTab.dataSave(true))
 			ws.curTab.dataIgnore();
@@ -891,8 +921,9 @@ public class WWindow extends HttpServlet
 
 		form line = new form("WWindow");
 		line.addAttribute("selected", "true");
+		//line.addAttribute("id", "WWindow");
 		line.setClass("panel");
-		line.setMethod("post");
+		line.setMethod("POST");
 		line.setTitle(ws.curTab.getName()); // TODO translate tab name
 		// line.setTarget("_self");
 		
@@ -1003,9 +1034,10 @@ public class WWindow extends HttpServlet
 		
 		if ( !ws.isReadOnlyView() )
 		{
-			a button = new a("#", "Save");
+			a button = new a("#", Msg.getMsg(wsc.language, "save"));
 			button.addAttribute("type", "submit");
 			button.setClass("redButton");
+			button.addAttribute("id", "save");
 			// a.setTarget("_self");
 			line.addElement(button);
 		}
@@ -1015,8 +1047,11 @@ public class WWindow extends HttpServlet
 
 		doc.getBody().addElement(line);
 		
+		//if(startUpdate!=null){
+		
 		div div = new div();
 		div.setClass("toolbar");
+		div.addAttribute("toolbar", "toolbar");
 		h1 header = new h1();
 		header.setID("pageTitle");
 		div.addElement(header);
@@ -1028,27 +1063,36 @@ public class WWindow extends HttpServlet
 		anchor.addElement("Menu");
 		div.addElement(anchor);
 
-		anchor = new a("WWindow?action=list", "Back");
+		anchor = new a("WWindow?action=list", Msg.getMsg(wsc.language, "iuimobile.Back"));
 		anchor.setID("previousButton");
 		anchor.setClass("button");
 		anchor.setTarget("_self");
 		div.addElement(anchor);
 		doc.getBody().addElement(div);
 		
+		div div1 = new div();
 
 		if ( !ws.curTab.isReadOnly() && ws.isReadOnlyView() )
 		{
 
 			div = new div();
 			div.setClass("footer");
-			a a = new a("WWindow?action=edit", "Edit");
-			a.setClass("redButton");
+			a a = new a("WWindow?action=edit", Msg.getMsg(wsc.language, "edit"));
+			a.setClass("blueButton");
 			a.setTarget("_self");
 			div.addElement(a);
+			//doc.getBody().addElement(div);
+			//add del buttom
+			
+			//div1.setClass("footer");
+			a a1 = new a("WWindow?action=delete", Msg.getMsg(wsc.language, "delete"));
+			a1.setClass("redButton");
+			a1.setTarget("_self");
+			div.addElement(a1);
 			doc.getBody().addElement(div);
 		}
 
-		
+	//	}
 		return doc;
 	}	//	getSR_Form
 
@@ -1076,12 +1120,17 @@ public class WWindow extends HttpServlet
 			
 		String idSQL = "SELECT ColumnName, AD_Column_ID from AD_Column" +
 				" WHERE AD_Table_ID = " + ws.curTab.getAD_Table_ID() +
-				" AND IsIdentifier ='Y' ORDER BY SeqNo";
+				" AND (IsIdentifier ='Y' OR IsSelectionColumn ='Y') ORDER BY SeqNo,SeqNoSelection";
+		
 		ValueNamePair[] idColumns = DB.getValueNamePairs(idSQL, false,null);
 		
 		String primary = null;
 		String secondary = null;
 		
+		//WE CREATE AN STRING FROM THE OTERS FIELDS
+		String[] selectioncolumn = new String[3]; 
+		
+		int y=0;
 		for ( ValueNamePair pair : idColumns )
 		{
 			if ( primary == null)
@@ -1092,32 +1141,45 @@ public class WWindow extends HttpServlet
 			{
 				secondary = pair.getValue();
 			}
+			else
+			{
+				//System.out.println(pair.getValue());
+				selectioncolumn[y++]=pair.getValue();
+				if (y==3) break;
+			}
 		}
 		
 		/**
 		 * Lines
 		 */
+		//System.out.println(y);
+		int count=y;
+		
 		int lastRow = initRowNo + MAX_LINES;
 		lastRow = Math.min(lastRow, ws.curTab.getRowCount());
 		for (int lineNo = initRowNo; lineNo >= 0 && lineNo < lastRow; lineNo++)
 		{
 			//  Row
 			ws.curTab.navigate(lineNo);
-
+			y=0;
 			a anchor = new a();
 			anchor.setHref("WWindow?record=" + lineNo );
 			anchor.setTarget("_self");
 				
-			for (int i = 1; i < 3; i++)
+			for (int i = 1; i < (3+count); i++)
 			{
 				GridField field = null;
 				if ( i == 1 && primary != null && primary.length() >  0 )
 					field = ws.curTab.getField(primary);
-				else if ( secondary != null && secondary.length() > 0 )
+				else if (i == 2 && secondary != null && secondary.length() > 0 )
 					field = ws.curTab.getField(secondary);
-				
+				else  if (i > 2 && selectioncolumn != null && selectioncolumn[y].length() > 0 ){
+					//System.out.println(selectioncolumn);
+					field = ws.curTab.getField(selectioncolumn[y++]);
+				}
 				if (field == null)
 					continue;
+				
 				
 				//  Get Data - turn to string
 				Object data = ws.curTab.getValue(field.getColumnName());
@@ -1166,12 +1228,23 @@ public class WWindow extends HttpServlet
 					//  Empty info
 					if (info == null || info.length() == 0)
 						info = "No Identifier";
-					anchor.addElement(info);
+					//anchor.addElement(info);
+					div d = new div();
+					d.setClass("primary");
+					d.addElement(info);
+					anchor.addElement(d);
 				}
-				else if ( info != null && info.length() > 0 )
+				else if ( info != null && info.length() > 0 && i==2 )
 				{
 					div d = new div();
 					d.setClass("secondary");
+					d.addElement(info);
+					anchor.addElement(d);
+				}
+				else 
+				{
+					div d = new div();
+					d.setClass("selectioncolumn");
 					d.addElement(info);
 					anchor.addElement(d);
 				}

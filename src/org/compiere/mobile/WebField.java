@@ -18,13 +18,30 @@ package org.compiere.mobile;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.logging.Level;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.ecs.*;
-import org.apache.ecs.xhtml.*;
-import org.compiere.model.*;
-import org.compiere.util.*;
+import org.apache.ecs.Element;
+import org.apache.ecs.xhtml.a;
+import org.apache.ecs.xhtml.div;
+import org.apache.ecs.xhtml.img;
+import org.apache.ecs.xhtml.input;
+import org.apache.ecs.xhtml.label;
+import org.apache.ecs.xhtml.option;
+import org.apache.ecs.xhtml.select;
+import org.apache.ecs.xhtml.textarea;
+import org.compiere.model.GridField;
+import org.compiere.model.GridTab;
+import org.compiere.model.Lookup;
+import org.compiere.model.MLocator;
+import org.compiere.model.MRole;
+import org.compiere.util.CLogger;
+import org.compiere.util.DB;
+import org.compiere.util.DisplayType;
+import org.compiere.util.Env;
+import org.compiere.util.KeyNamePair;
+import org.compiere.util.NamePair;
+import org.compiere.util.Util;
+import org.compiere.util.ValueNamePair;
 
 /**
  *	Web Field.
@@ -437,7 +454,7 @@ public class WebField
 			if (m_displayType == DisplayType.Amount	)
 				formattedData = m_wsc.amountFormat.format(0.00);
 			else if (m_displayType == DisplayType.Number
-				|| m_displayType == DisplayType.CostPrice)
+				|| m_displayType == DisplayType.CostPrice )
 				formattedData = m_wsc.numberFormat.format(0.00);
 			else if (m_displayType == DisplayType.Integer)
 				formattedData = m_wsc.integerFormat.format(0);
@@ -461,7 +478,8 @@ public class WebField
 			return getDiv(StringEscapeUtils.escapeHtml(formattedData));
 			
 		
-		input string = new input("number", m_columnName, formattedData);
+		input string = new input("text", m_columnName, formattedData);
+		
 		string.setID(m_columnName + "F");
 		//string.setSize(m_displayLength);
 		if (m_fieldLength > 0)
@@ -476,6 +494,9 @@ public class WebField
 		if (m_hasDependents || m_hasCallout)
 			string.setOnChange("startUpdate(this);");
 		//
+		string.setOnKeyPress("return inputNumber(event);");
+		
+		
 		return string;
 	}	//	getNumberField
 	
@@ -526,9 +547,11 @@ public class WebField
 		//  The display field       Name=columnName, ID=FcolumnName		
 			// display = new input(input.TYPE_TEXT, m_columnName + "D",StringEscapeUtils.escapeHtml(dataDisplay));
 		
-		if (m_displayType == DisplayType.Location )
+		if (m_displayType == DisplayType.Location ){
 			display = new a("WLocation?ColumnName=" + m_columnName, m_columnName + "D", StringEscapeUtils.escapeHtml(dataDisplay));
-		else 
+			//display.addAttribute("onClick", "window.open(WLocation?ColumnName=" + m_columnName + "");
+			//display.addAttribute("onClick", "window.open('WLocation?ColumnName="+  m_columnName + "', 'myWindow', 'width=100%, height=200'); ");
+		}else 
 			display = new a("WLookup?ColumnName=" + m_columnName+"&AD_Process_ID="+m_processID, m_columnName + "D", StringEscapeUtils.escapeHtml(dataDisplay));
 			
 			
@@ -574,7 +597,9 @@ public class WebField
 			display.setClass(C_MANDATORY);
 		//
 		if (m_hasDependents || m_hasCallout){
-			;//display.setOnChange("startUpdate(this)");			
+			
+			hidden.setOnChange("startUpdate(this)");
+			
 		}
 		
 		//
