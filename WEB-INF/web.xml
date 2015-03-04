@@ -4,7 +4,7 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
    version="2.4">
-	<display-name>Adempiere Web Application</display-name>
+	<display-name>iDempiere Web Application</display-name>
 	<description>$Id: web.xml,v 1.1 2009/04/15 11:30:04 vinhpt Exp $</description>
 	<context-param>
 		<param-name>AD_Client_ID</param-name>
@@ -15,7 +15,7 @@
 		<param-value>1</param-value>
 	</context-param>
 <filter>
-		<display-name>Adempiere Web Filter</display-name>
+		<display-name>iDempiere Web Filter</display-name>
 		<filter-name>WFilter</filter-name>
 		<filter-class>org.compiere.mobile.WFilter</filter-class>
 		<init-param>
@@ -37,64 +37,64 @@
 		<servlet-class>org.compiere.mobile.LoginDynUpdate</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Field Update</display-name>
+		<display-name>iDempiere Field Update</display-name>
 		<servlet-name>WFieldUpdate</servlet-name>
 		<servlet-class>org.compiere.mobile.WFieldUpdate</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Location</display-name>
+		<display-name>iDempiere Location</display-name>
 		<servlet-name>WLocation</servlet-name>
 		<servlet-class>org.compiere.mobile.WLocation</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Login</display-name>
+		<display-name>iDempiere Login</display-name>
 		<servlet-name>WLogin</servlet-name>
 		<servlet-class>org.compiere.mobile.WLogin</servlet-class>
 		<load-on-startup>2</load-on-startup>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Lookup</display-name>
+		<display-name>iDempiere Lookup</display-name>
 		<servlet-name>WLookup</servlet-name>
 		<servlet-class>org.compiere.mobile.WLookup</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Menu</display-name>
+		<display-name>iDempiere Menu</display-name>
 		<servlet-name>WMenu</servlet-name>
 		<servlet-class>org.compiere.mobile.WMenu</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Process</display-name>
+		<display-name>iDempiere Process</display-name>
 		<servlet-name>WProcess</servlet-name>
 		<servlet-class>org.compiere.mobile.WProcess</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Report</display-name>
+		<display-name>iDempiere Report</display-name>
 		<servlet-name>WReport</servlet-name>
 		<servlet-class>org.compiere.mobile.WReport</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Zoom</display-name>
+		<display-name>iDempiere Zoom</display-name>
 		<servlet-name>WZoom</servlet-name>
 		<servlet-class>org.compiere.mobile.WZoom</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Help</display-name>
+		<display-name>iDempiere Help</display-name>
 		<servlet-name>WHelp</servlet-name>
 		<servlet-class>org.compiere.mobile.WHelp</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Start</display-name>
+		<display-name>iDempiere Start</display-name>
 		<servlet-name>WStart</servlet-name>
 		<servlet-class>org.compiere.mobile.WStart</servlet-class>
 		<load-on-startup>2</load-on-startup>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere Application Window</display-name>
+		<display-name>iDempiere Application Window</display-name>
 		<servlet-name>WWindow</servlet-name>
 		<servlet-class>org.compiere.mobile.WWindow</servlet-class>
 	</servlet>
 	<servlet>
-		<display-name>Adempiere FindAdv</display-name>
+		<display-name>iDempiere FindAdv</display-name>
 		<servlet-name>WFindAdv</servlet-name>
 		<servlet-class>org.compiere.mobile.WFindAdv</servlet-class>
 	</servlet>

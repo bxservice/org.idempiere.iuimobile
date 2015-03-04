@@ -44,8 +44,10 @@ import org.apache.ecs.xhtml.fieldset;
 import org.apache.ecs.xhtml.font;
 import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
+import org.apache.ecs.xhtml.img;
 import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.label;
+import org.apache.ecs.xhtml.link;
 import org.apache.ecs.xhtml.option;
 import org.apache.ecs.xhtml.script;
 import org.apache.ecs.xhtml.select;
@@ -115,7 +117,7 @@ public class WLogin extends HttpServlet
 	 */
 	public String getServletInfo()
 	{
-		return "adempiere Web Login";
+		return "iDempiere Web Login";
 	}	//	getServletInfo
 
 	/**
@@ -503,6 +505,8 @@ public class WLogin extends HttpServlet
 
 		div1 = new div();
 		div1.setClass("row");
+		
+		
 		/*  Store Cookie
 		label cookieLabel = new label().setFor(P_STORE + "F").addElement(storeTxt);
 		cookieLabel.setID(P_STORE + "L");
@@ -522,12 +526,25 @@ public class WLogin extends HttpServlet
 			div1.addElement(new font(HtmlColor.red, 4).addElement(new b(errorMessage)));   //  color, size
 			fs.addElement(div1);
 		}
+		//buscamos la imagen del tema por defecto
+		StringBuffer sb = new StringBuffer();
+		String zk_theme_value=MSysConfig.getValue("ZK_THEME");
+		
+		
+		img img=new img();
+		img.setSrc("/webui/theme/"+zk_theme_value+"/images/login-logo.png");
+		
 
+		div div0 = new div();
+
+		div0.addElement(img);
+		div0.setClass("login-box-header-logo");
+		
 		myForm.addElement(fs);
 		
 		//<a class="whiteButton" type="submit" href="#">Login</a>
 		//  Finish
-		a button = new a("#", windowTitle);
+		a button = new a("#", "OK");
 		button.addAttribute("type", "submit");
 		button.setClass("whiteButton");
 		
@@ -539,6 +556,7 @@ public class WLogin extends HttpServlet
 		
 		div div = new div();
 		div.setClass("toolbar");
+		
 		h1 header = new h1();
 		header.setID("pageTitle");
 		div.addElement(header);
@@ -546,14 +564,30 @@ public class WLogin extends HttpServlet
 		anchor.setID("backButton");
 		anchor.setClass("button");
 		div.addElement(anchor);
+		
+		
+		if (errorMessage == null || errorMessage.length()<=0 )
+		{
+			doc.getBody()
+			
+			.addElement(div)
+			.addElement(div0)
 
-		doc.getBody()
-		.addElement(myForm)
-		.addElement(div)
+			.addElement(myForm)
 			.setTitle(windowTitle);
 
+			doc.getHead().addElement(new link("/webui/theme/"+zk_theme_value+"/images/login-logo.png","icon","image/png"));
+			doc.getHead().addElement(new script((Element)null, MobileEnv.getBaseDirectory("/js/login.js")));	
+		}
+		else{
+			doc.getBody()
+			
 
-		doc.getHead().addElement(new script((Element)null, MobileEnv.getBaseDirectory("/js/login.js")));
+			.addElement(myForm);
+		}
+		
+
+		
 
 		return doc;
 	}   //  createFirstPage
@@ -571,7 +605,7 @@ public class WLogin extends HttpServlet
 	{
 		log.info(" - " + errorMessage);
 		MobileSessionCtx wsc = MobileSessionCtx.get(request);
-		String windowTitle = Msg.getMsg(wsc.language, "Login");
+		String windowTitle = Msg.getMsg(wsc.language, "SelectRole");
 		// make option[]
 		option[] clientOptions = MobileUtil.convertToOption(clients, roleData);
 		
