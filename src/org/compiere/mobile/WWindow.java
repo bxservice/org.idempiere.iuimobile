@@ -22,6 +22,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Level;
 
@@ -33,22 +36,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ecs.xhtml.a;
 import org.apache.ecs.xhtml.div;
 import org.apache.ecs.xhtml.fieldset;
 import org.apache.ecs.xhtml.form;
 import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.h2;
-import org.apache.ecs.xhtml.img;
 import org.apache.ecs.xhtml.li;
+import org.apache.ecs.xhtml.pre;
 import org.apache.ecs.xhtml.ul;
 // todo: chart support import org.compiere.grid.ed.ChartBuilder;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
 import org.compiere.model.GridWindowVO;
 import org.compiere.model.Lookup;
+import org.compiere.model.MColumn;
 import org.compiere.model.MQuery;
 import org.compiere.model.MRole;
+import org.compiere.model.MTab;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
@@ -130,18 +136,15 @@ public class WWindow extends HttpServlet
 	// Modified by Rob Klein 4/29/2007
 	//private static final int    MAX_LINES   = 12;
 	private static final int    MAX_LINES   = 999999999;
-	/** Indicator for last line             */
-	private static final int    LAST_LINE   = 999999999;
+
 
 	/** Error Indicator                     */
 	private static final String ERROR       = " ERROR! ";
 
 	private String m_searchField;
-	private String m_targetWindow;
 
 	private HttpSession sess;
 	
-	private String startUpdate=null;
 	/**
 	 *  Process the HTTP Get request - Initial Call.
 	 *  <br>
@@ -191,7 +194,7 @@ public class WWindow extends HttpServlet
 
 		String action = MobileUtil.getParameter(request, "action");
 		String strSQL=MobileUtil.getParameter(request, "txtSQL");
-		
+		MTab tb = null;		 
 		
 		
 		
@@ -217,7 +220,11 @@ public class WWindow extends HttpServlet
 			ws.curTab.setSingleRow(false);
 			ws.curTab.query(false);
 			ws.curTab.navigate(0);
-			doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);
+			tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+			if(tb.get_Value("BAY_MobileFormat")!=null) 
+				doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+			else 
+				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0); 
 			MobileUtil.createResponse (request, response, this, null, doc, false);
 			return;
 		}
@@ -241,8 +248,11 @@ public class WWindow extends HttpServlet
 			ws.curTab.setSingleRow(false);
 			ws.curTab.query(false);
 			ws.curTab.navigate(0);
-			doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);
-			MobileUtil.createResponse (request, response, this, null, doc, false);
+			tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+			if(tb.get_Value("BAY_MobileFormat")!=null) 
+				doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+			else 
+				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0); 			MobileUtil.createResponse (request, response, this, null, doc, false);
 			return;
 		}
 		else if ( !Util.isEmpty(strSQL))
@@ -268,8 +278,11 @@ public class WWindow extends HttpServlet
 				ws.curTab.setQuery(query);
 				ws.curTab.query(false);
 				ws.curTab.navigate(0);
-				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);
-				MobileUtil.createResponse (request, response, this, null, doc, false);
+				tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+				if(tb.get_Value("BAY_MobileFormat")!=null) 
+					doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+				else 
+					doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);				MobileUtil.createResponse (request, response, this, null, doc, false);
 				return;
 			
 		}
@@ -302,9 +315,11 @@ public class WWindow extends HttpServlet
 			ws.curTab.navigate(0);
 			ws.curTab.setSingleRow(false);
 			ws.setRO(true);
-			
-			doc = getMR_Form (request.getRequestURI(), wsc, ws, false);
-			MobileUtil.createResponse(request, response, this, null, doc, false);
+			tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+			if(tb.get_Value("BAY_MobileFormat")!=null) 
+				doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+			else 
+				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0); 			MobileUtil.createResponse(request, response, this, null, doc, false);
 			return;
 		}
 
@@ -397,13 +412,16 @@ public class WWindow extends HttpServlet
 			ws.curTab.navigate(0);
 			ws.curTab.setSingleRow(false);
 		}
-
+		tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+		
 		/**
 		 *  Build Page
 		 */
 		//  Create Single/Multi Row
 		if (ws.curTab.isSingleRow())
 			doc = getSR_Form (request.getRequestURI(), wsc, ws);
+		else if(tb.get_Value("BAY_MobileFormat")!=null) 
+	 		doc = getMR_Form (request.getRequestURI(), wsc, ws, true, tb); 
 		else
 			doc = getMR_Form (request.getRequestURI(), wsc, ws, true);
 
@@ -696,7 +714,7 @@ public class WWindow extends HttpServlet
 			log.log(Level.SEVERE, "Set CharacterEncoding=" + MobileEnv.ENCODING, e);
 		}
 		//  loop through parameters
-		Enumeration en = request.getParameterNames();
+		Enumeration<String> en = request.getParameterNames();
 		while (en.hasMoreElements())
 		{
 			String key = (String)en.nextElement();
@@ -1003,10 +1021,6 @@ public class WWindow extends HttpServlet
 		/*if (scriptSrc.length() > 0)
 			table.addElement(new script(scriptSrc.toString()));*/
 
-		//  Status Line
-		int rowNo = ws.curTab.getCurrentRow();
-		String statusDB = String.valueOf(rowNo+1) + " / " + ws.curTab.getRowCount();
-		//
 		// return createLayout (action, new ul(), wsc, ws, ws.curTab.getDescription(), statusDB);
 		if (  ws.isReadOnlyView() )
 		{
@@ -1070,8 +1084,6 @@ public class WWindow extends HttpServlet
 		div.addElement(anchor);
 		doc.getBody().addElement(div);
 		
-		div div1 = new div();
-
 		if ( !ws.curTab.isReadOnly() && ws.isReadOnlyView() )
 		{
 
@@ -1111,9 +1123,7 @@ public class WWindow extends HttpServlet
 		int initRowNo = ws.curTab.getCurrentRow();
 		
 		String name = ws.curTab.getName();
-		
-		int noFields = ws.curTab.getFieldCount();
-		
+				
 		ul list = new ul();
 		list.addAttribute("selected", "true");
 		list.setTitle(name);
@@ -1308,6 +1318,330 @@ public class WWindow extends HttpServlet
 		doc.getBody().addElement(div2);
 		return doc;
 	}	//	getMR_Form
+	
+	/**************************************************************************
+	 *	Return MultiRow  Form details
+	 *  @param action 	 Action
+	 *  @param wsc 		 Session context
+	 *  @param ws 		 Window status
+	 *  @param tabFormat Tab format
+	 *  @return Form
+	 */
+	public MobileDoc getMR_Form (String action, MobileSessionCtx wsc, WWindowStatus ws, boolean firstPage, MTab tabFormat)
+	{
+		log.fine("Tab=" + ws.curTab.getTabNo());
+
+		int initRowNo = ws.curTab.getCurrentRow();
+
+		String name = ws.curTab.getName();
+		MobileDoc doc = createPage(ws);
+
+		ul list = new ul();
+		list.addAttribute("selected", "true");
+		list.setTitle(name);
+
+		String formatContent = (String) tabFormat.get_Value("BAY_MobileFormat");
+
+		String posLayout = "VL";
+		String sClass = "primary";
+		String[] columns;
+
+
+		int j = formatContent.indexOf('=');
+		if(j!=-1){
+			String[] str = formatContent.split("=");
+			j = str[0].indexOf('"');
+			if(j!=-1){
+				String outStr = str[0];
+				str[0] = str[0].substring(0, j);
+				sClass = outStr.substring(j+1, outStr.length()-1);
+			}
+
+			if(str[0].equals("HL"))
+				posLayout = "HL";
+
+			columns = str[1].split(",(?![^<]*>)");
+		}
+		else{
+			columns = formatContent.split(",(?![^<]*>)");
+		}
+
+		/**
+		 * Lines
+		 */
+		int count=columns.length;
+
+		int lastRow = initRowNo + MAX_LINES;
+		lastRow = Math.min(lastRow, ws.curTab.getRowCount());
+		for (int lineNo = initRowNo; lineNo >= 0 && lineNo < lastRow; lineNo++)
+		{
+			//  Row
+			ws.curTab.navigate(lineNo);
+			a anchor = new a();
+			anchor.setHref("WWindow?record=" + lineNo );
+			anchor.setTarget("_self");
+
+			StringBuilder sb = new StringBuilder("");
+			for (int i = 0; i < count; i++)
+			{
+				ArrayList<String> cadenas = getFormat(columns[i]);
+				if( cadenas == null )
+					continue;
+
+				String columnName = cadenas.get(0);		//Column Name
+				String format     = cadenas.get(1);		//Format Position
+				String lengthStr  = cadenas.get(2);     //Length Allowed
+				int length;
+				if(lengthStr.equals("")){
+					length = 0;
+				}
+				else
+					length = Integer.parseInt(lengthStr);
+
+				GridField field = null;
+				if ( columnName != null && columnName.length() >  0 )
+					field = ws.curTab.getField(columnName);
+
+				if (field == null)
+					continue;
+
+
+				//  Get Data - turn to string
+				Object data = ws.curTab.getValue(field.getColumnName());
+				String info = null;
+				//
+				if (data == null)
+					info = padString("", length);
+				else
+				{
+					info = parseVariable(field, data, format, length);
+				}
+
+				if(posLayout.equals("VL")){
+					if ( i == 0 )
+					{
+						//  Empty info
+						if (info == null || info.length() == 0)
+							info = "No Identifier";
+						div d = new div();
+						d.setClass("primary");
+						d.addElement(info);
+						anchor.addElement(d);
+					}
+					else if ( info != null && info.length() > 0 && i==1 )
+					{
+						div d = new div();
+						d.setClass("secondary");
+						d.addElement(info);
+						anchor.addElement(d);
+					}
+					else 
+					{
+						div d = new div();
+						d.setClass("selectioncolumn");
+						d.addElement(info);
+						anchor.addElement(d);
+					}
+				}
+				else
+					sb.append(info+" ");
+			}  
+
+			if(posLayout.equals("HL")){
+				pre pred = new pre();
+				div d = new div();
+				pred.setClass(sClass);
+				pred.addElement(sb.toString());
+				d.addElement(pred);
+				anchor.addElement(d);
+			}
+
+			li item = new li();
+			item.addElement(anchor);
+
+			list.addElement(item);
+
+		}   
+		//	Main Table
+		doc.getBody().addElement(list);
+
+		div div = new div();
+		div.setClass("toolbar");
+		h1 header = new h1();
+		header.setID("pageTitle");
+		div.addElement(header);
+
+		a anchor = new a();
+		anchor.setClass("button");
+		anchor.setHref(MobileEnv.getBaseDirectory("WMenu"));
+		anchor.setTarget("_self");
+		anchor.addElement("Menu");
+		div.addElement(anchor);
+
+
+
+		if ( !firstPage )
+		{
+			anchor = new a("WWindow?action=previous", Msg.getMsg(wsc.language, "iuimobile.Back"));
+			anchor.setID("previousButton");
+			anchor.setClass("button");
+			anchor.setTarget("_self");
+			div.addElement(anchor);
+		}
+
+		div div2 = new div();
+		div2.setClass("footer");
+		anchor = new a("WFindAdv", Msg.getMsg(wsc.language, "iuimobile.Find"));
+		anchor.setID("findButton");
+		anchor.setClass("blueButton");
+		div2.addElement(anchor);
+
+		if ( !ws.curTab.isReadOnly() &&  ws.curTab.isInsertRecord() && ws.isReadOnlyView() )
+		{
+			a a = new a("WWindow?action=insert", Msg.getMsg(wsc.language, "iuimobile.NewRecord"));
+			a.setClass("redButton");
+			a.setTarget("_self");
+			div2.addElement(a);
+		}
+
+		doc.getBody().addElement(div);
+		doc.getBody().addElement(div2);
+		return doc;
+
+	}	//	getMR_Form DR end
+
+	private ArrayList<String> getFormat(String variable){
+
+		/*
+		 *Position 1:Variable text. 2: Format Type Between <>. 3: Length Between ()
+		 */
+		ArrayList<String> dividedText = new ArrayList<String>();
+		if(variable.indexOf('<') == -1 && variable.indexOf('(') == -1 ){
+			dividedText.add(0,variable);
+			dividedText.add(1,"");
+			dividedText.add(2,"");
+			return dividedText;
+		}
+
+		String inStr = variable;
+		StringBuilder outStr = new StringBuilder();
+		String token;
+
+		int i = inStr.indexOf('<');
+		if(i!=-1){
+			outStr.append(inStr.substring(0, i));			// up to <
+			inStr = inStr.substring(i+1, inStr.length());	// from first <
+
+			int j = inStr.indexOf('>');						// next >
+			if (j < 0)										// no second tag
+			{
+				return null;
+			}
+
+			token = inStr.substring(0, j);
+
+			dividedText.add(0,outStr.toString());
+			dividedText.add(1,token);
+		}
+
+		i = inStr.indexOf('(');
+		if(i==-1){
+			dividedText.add(2,"");
+		}
+		else{
+			int j = inStr.indexOf('>');
+			if( j < 0 )
+			{
+				outStr.append(inStr.substring(0, i));			// up to (
+				inStr = inStr.substring(i+1, inStr.length());	// from first (
+
+				j = inStr.indexOf(')');		 					// next >
+				if (j < 0)										// no second tag
+				{
+					return null;
+				}
+
+				token = inStr.substring(0, j);
+
+				dividedText.add(0,outStr.toString());
+				dividedText.add(1,"");
+				dividedText.add(2,token);
+			}
+			else{
+				outStr.append(inStr.substring(0, i));			// up to (
+				inStr = inStr.substring(i+1, inStr.length());	// from first (
+
+				j = inStr.indexOf(')');		 					// next >
+				if (j < 0)										// no second tag
+				{
+					return null;
+				}
+				token = inStr.substring(0, j);
+				dividedText.add(2,token);				
+			}
+		}
+
+		return dividedText;
+	}
+
+	/**
+	 * 	Parse Variable
+	 *	@param variable variable
+	 *	@param po po
+	 *	@return translated variable or if not found the original tag
+	 */
+	private String parseVariable (GridField field,Object variable, String format, int length)
+	{
+
+		Object value = null;
+		MColumn col = MColumn.get(Env.getCtx(), field.getAD_Column_ID());
+		if (col != null && col.isSecure()) {
+			value = "********";
+		} else if (field.getDisplayType() == DisplayType.Date || field.getDisplayType() == DisplayType.DateTime || field.getDisplayType() == DisplayType.Time) {
+			SimpleDateFormat sdf;
+			if(!format.equals("") && format.length() > 0){
+				sdf = new SimpleDateFormat(format, Env.getLanguage(Env.getCtx()).getLocale());
+			}else{
+				sdf = DisplayType.getDateFormat(field.getDisplayType());
+			}
+			if(variable!=null)
+				value = sdf.format (variable);
+
+		} else if (field.getDisplayType() == DisplayType.YesNo) {
+			value = Msg.getMsg(Env.getCtx(), (String )variable);
+		}else if (field.getDisplayType() == DisplayType.Number ||field.getDisplayType() == DisplayType.Amount || field.getDisplayType() == DisplayType.CostPrice) {
+			DecimalFormat df;
+			if(!format.equals("") && format.length() > 0){
+				df =  DisplayType.getNumberFormat(field.getDisplayType(),null,format);
+			}else{
+				df = DisplayType.getNumberFormat(field.getDisplayType());
+			}
+			if(variable!=null)
+				value = df.format (variable);	
+		}else if (DisplayType.isLookup(field.getDisplayType())){
+			value = field.getLookup().getDisplay(variable);
+		}
+		else {
+			value = variable;
+		}
+		if (value == null)
+			return "";
+
+		if(length != 0)
+			value = padString(value.toString(),length);
+
+		return value.toString();
+	}	//	parseVariable
+
+	public String padString(String s, int n) {
+		if(	Math.abs(n) < s.length())
+			return s.substring(0, Math.abs(n));
+		if(n<0) //PadLeft
+			return StringUtils.leftPad(s, Math.abs(n));
+		else	//PadRight
+			return StringUtils.rightPad(s, Math.abs(n));
+	}
+
 
 	/**
 	 *  Create Page.
@@ -1398,8 +1732,8 @@ public class WWindow extends HttpServlet
 	}
 	
 
-	private img getChart(int chartID, HttpSession session) {
-		/* todo chart support
+	/*private img getChart(int chartID, HttpSession session) {
+		 todo chart support
 		ChartBuilder chartBuilder = new ChartBuilder( chartID, 0);
 		chartBuilder.getChartModel().loadData();
 		JFreeChart chart = chartBuilder.createChart();
@@ -1423,8 +1757,7 @@ public class WWindow extends HttpServlet
 		
 		return image;
 		
-		*/
-		return null;
-	}
+		 null;
+	}*/
 	
 }   //  WWindow
