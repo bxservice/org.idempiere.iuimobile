@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: org.idempiere.iuimobile
 Bundle-SymbolicName: org.idempiere.iuimobile;singleton:=true
-Bundle-Version: 3.0.1
+Bundle-Version: 3.0.1.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
  
 Require-Bundle: org.adempiere.base;bundle-version="2.1.0",
@@ -28,5 +28,5 @@ Import-Package: javax.mail.internet;version="1.5.0",
  org.apache.ecs.xhtml,
  org.osgi.framework;version="1.7.0",
  org.osgi.service.http;version="1.2.1"
-Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
+Bundle-Activator: org.idempiere.mobile.Activator
 Service-Component: OSGI-INF/iuimodelfactory.xml

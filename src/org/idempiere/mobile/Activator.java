@@ -3,15 +3,14 @@
  */
 package org.idempiere.mobile;
 
-import org.adempiere.plugin.utils.AdempiereActivator;
-import org.osgi.framework.BundleActivator;
+import org.adempiere.plugin.utils.Incremental2PackActivator;
 import org.osgi.framework.BundleContext;
 
 /**
  * @author hengsin
  *
  */
-public class Activator extends AdempiereActivator {
+public class Activator extends Incremental2PackActivator {
 	
 	static BundleContext bundleContext;
 	
