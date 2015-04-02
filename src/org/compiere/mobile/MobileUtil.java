@@ -532,6 +532,24 @@ public final class MobileUtil
         log.warning(" - " + logMessage + " - update not confirmed");
         thisContext.getRequestDispatcher(jsp).forward(request, response);
     }
+    
+    /**
+	 * 	Update Cookie with mobile user by setting user to _
+	 * 	@param request request (for context path)
+	 * 	@param response response to add cookie
+	 */
+	public static void updateCookieMobileUser (HttpServletRequest request, HttpServletResponse response,  Properties cookieProperties)
+	{
+		Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, propertiesEncode(cookieProperties));
+		cookie.setComment("iDempiere Free ERP");
+		cookie.setSecure(false);
+		cookie.setPath("/");
+		if (cookieProperties.size() == 0)
+			cookie.setMaxAge(0);            //  delete cookie
+		else
+			cookie.setMaxAge(2592000);      //  30 days in seconds   60*60*24*30
+		response.addCookie(cookie);
+	}	//	deleteCookieWebUser
 
 	
 	/**************************************************************************
@@ -556,15 +574,7 @@ public final class MobileUtil
 		//  Update Cookie - overwrite
 		if (cookieProperties != null)
 		{
-			Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, propertiesEncode(cookieProperties));
-			cookie.setComment("iDempiere Free ERP");
-			cookie.setSecure(false);
-			cookie.setPath("/");
-			if (cookieProperties.size() == 0)
-				cookie.setMaxAge(0);            //  delete cookie
-			else
-				cookie.setMaxAge(2592000);      //  30 days in seconds   60*60*24*30
-			response.addCookie(cookie);
+			updateCookieMobileUser(request,response,cookieProperties); 
 		}
 		//  add diagnostics
 		if (debug && MobileEnv.DEBUG)
@@ -614,15 +624,7 @@ public final class MobileUtil
 		//  Update Cookie - overwrite
 		if (cookieProperties != null)
 		{
-			Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, propertiesEncode(cookieProperties));
-			cookie.setComment("(c) adempiere, Inc - Jorg Janke");
-			cookie.setSecure(false);
-			cookie.setPath("/");
-			if (cookieProperties.size() == 0)
-				cookie.setMaxAge(0);            //  delete cookie
-			else
-				cookie.setMaxAge(2592000);      //  30 days in seconds   60*60*24*30
-			response.addCookie(cookie);
+			updateCookieMobileUser(request,response,cookieProperties); 
 		}
 	//	String content = doc.toString();
 	//  response.setContentLength(content.length());    //  causes problems at the end of the output

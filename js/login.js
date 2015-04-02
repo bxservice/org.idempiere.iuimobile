@@ -37,3 +37,10 @@ function loginDynUpdate(selector)
     req.open("GET", "LoginDynUpdate?"+query, true);
     req.send(null);
 }
+
+function checkRemember(selector){
+	if(selector.value=="true")
+		selector.value="false";
+	else if(selector.value=="false")
+		selector.value="true";
+}

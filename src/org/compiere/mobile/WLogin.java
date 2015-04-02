@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,6 +55,8 @@ import org.apache.ecs.xhtml.td;
 import org.compiere.model.MRole;
 import org.compiere.model.MSession;
 import org.compiere.model.MSysConfig;
+import org.compiere.model.MSystem;
+import org.compiere.model.MUser;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -166,7 +167,7 @@ public class WLogin extends HttpServlet
 	 *  @throws IOException
 	 */
 	public void doPost(HttpServletRequest request, HttpServletResponse response) 
-		throws ServletException, IOException
+			throws ServletException, IOException
 	{
 		log.info("");
 		//  Create New Session
@@ -178,7 +179,7 @@ public class WLogin extends HttpServlet
 
 		//  Create Context
 		MobileSessionCtx wsc = MobileSessionCtx.get (request);
-		
+
 		//  Page
 		MobileDoc doc = null;
 
@@ -190,98 +191,15 @@ public class WLogin extends HttpServlet
 				msg = "No Database Connection";
 			doc = MobileDoc.createWindow (msg);
 		}
-		
+
 		//  Get Parameters: Role, Client, Org, Warehouse, Date
 		String role = MobileUtil.getParameter (request, WLogin.P_ROLE);
 		String client = MobileUtil.getParameter (request, WLogin.P_CLIENT);
 		String org = MobileUtil.getParameter (request, WLogin.P_ORG);
 		if ( role != null && client != null && org != null )
 		{
-			//  Get Info from Context - User, Role, Client
-			int AD_User_ID = Env.getAD_User_ID(wsc.ctx);
-			int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
-			int AD_Client_ID = Env.getAD_Client_ID(wsc.ctx);
-			//  Not available in context yet - Org, Warehouse
-			int AD_Org_ID = -1;
-			int M_Warehouse_ID = -1;
-
-			//  Get latest info from context
-			try
-			{
-				int req_role = Integer.parseInt(role);
-				if (req_role != AD_Role_ID)
-				{
-					log.fine("AD_Role_ID - changed from " + AD_Role_ID);
-					AD_Role_ID = req_role;
-					Env.setContext(wsc.ctx, "#AD_Role_ID", AD_Role_ID);
-				}
-				log.fine("AD_Role_ID = " + AD_Role_ID);
-				//
-				int req_client = Integer.parseInt(client);
-				if (req_client != AD_Client_ID)
-				{
-					log.fine("AD_Client_ID - changed from " + AD_Client_ID);
-					AD_Client_ID = req_client;
-					Env.setContext(wsc.ctx, "#AD_Client_ID", AD_Client_ID);
-				}
-				log.fine("AD_Client_ID = " + AD_Client_ID);
-				//
-				AD_Org_ID = Integer.parseInt(org);
-				log.fine("AD_Org_ID = " + AD_Org_ID);
-				//
-			}
-			catch (Exception e)
-			{
-				log.log(Level.SEVERE, "Parameter", e);
-				MobileUtil.createTimeoutPage(request, response, this, 
-					Msg.getMsg(wsc.ctx, "ParameterMissing"));
-				return;
-			}
-
-			//  Check Login info and set environment
-			wsc.loginInfo = checkLogin (wsc.ctx, AD_User_ID, AD_Role_ID, 
-				AD_Client_ID, AD_Org_ID, M_Warehouse_ID);
-			if (wsc.loginInfo == null)
-			{
-				MobileUtil.createErrorPage (request, response, this,  
-					Msg.getMsg(wsc.ctx, "RoleInconsistent"));
-				return;
-			}
-
-			//  Set Date
-			Timestamp ts = MobileUtil.getParameterAsDate (request, WLogin.P_DATE);
-			if (ts == null)
-				ts = new Timestamp(System.currentTimeMillis());
-			Env.setContext(wsc.ctx, "#Date", ts);    //  JDBC format
-
-
-			cProp.setProperty(P_ROLE, Integer.toString(AD_Role_ID));
-			cProp.setProperty(P_ORG, Integer.toString(AD_Org_ID));
-			cProp.setProperty(Env.LANGUAGE, wsc.language.getAD_Language());
-			/*
-			RequestDispatcher rd = getServletContext().getRequestDispatcher("/WMenu");
-			rd.forward(request, response);
-			*/
-
-			//
-			//  Update Cookie - overwrite
-			if (cProp != null)
-			{
-				Cookie cookie = new Cookie (MobileEnv.COOKIE_INFO, MobileUtil.propertiesEncode(cProp));
-				cookie.setComment("(c) iDempiere, 2013");
-				cookie.setSecure(false);
-				cookie.setPath("/");
-				if (cProp.size() == 0)
-					cookie.setMaxAge(0);            //  delete cookie
-				else
-					cookie.setMaxAge(2592000);      //  30 days in seconds   60*60*24*30
-				response.addCookie(cookie);
-			}
-			
-			response.sendRedirect(MobileEnv.getBaseDirectory("/WMenu"));
-			
+			createMenu(request,response,wsc,role,client,org,cProp); 
 			return;
-
 		}
 		//  Login Info from request?
 		else
@@ -292,34 +210,56 @@ public class WLogin extends HttpServlet
 			//  Get Principle
 			Principal userPrincipal = request.getUserPrincipal();
 			log.info("Principal=" + userPrincipal + "; User=" + APP_USER);
-			
+
 			//  Login info not from request and not pre-authorized
-			if (userPrincipal == null && (APP_USER == null || pwd == null))
+			if (userPrincipal == null && (APP_USER == null || pwd == null)){
 				doc = createFirstPage (cProp, request, "");
+				String isRemember = cProp.getProperty(P_REMEMBER);
+				if(isRemember!=null && isRemember.equals("true")){
+					int AD_User_ID = Integer.parseInt(cProp.getProperty(P_USER));
+					MUser user = MUser.get(Env.getCtx(), AD_User_ID);
+					if (user != null && user.get_ID() == AD_User_ID)
+					{
+						if (MSystem.isZKRememberUserAllowed()) {
+							if (user.getLDAPUser() != null && user.getLDAPUser().length() > 0) {
+								usrInput.setValue(user.getLDAPUser());
+							} else {
+								usrInput.setValue(user.getName());
+							}
+						}
+						if (MSystem.isZKRememberPasswordAllowed()) {
+							pwdInput.setValue(user.getPassword());
+						}
+					}
+				}
+			}
 			//  Login info from request or authorized
 			else
 			{
-//TODO red1 here starts the need to swap Role with Client DONE
+				//TODO red1 here starts the need to swap Role with Client DONE
+				MobileUtil.getParameter (request, WLogin.P_ROLE);
+
 				KeyNamePair[] clients = null;
 				Login login = new Login(wsc.ctx);
+				clients = login.getClients (APP_USER,pwd);
+
+				@SuppressWarnings({ "deprecation", "unused" })
+				KeyNamePair[] rl  = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
+
 				//  Pre-authorized
 				if (userPrincipal != null)
-				{
-					KeyNamePair[] rl = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc,
-					clients = login.getClients (APP_USER,pwd);
 					APP_USER = userPrincipal.getName();
-				}
-				else {
-					KeyNamePair[] rl = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
-					clients = login.getClients (APP_USER,pwd);
-				}
-				//
-				if (clients == null)
+
+				if (clients == null){
+					cProp.setProperty(P_REMEMBER, "false");
 					doc = createFirstPage(cProp, request, Msg.getMsg(wsc.ctx, "UserPwdError"));
+				}
 				else
 				{
-				 
+
 					{
+						String isRemember =  MobileUtil.getParameter(request, P_REMEMBER);
+						rememberCk.setValue(isRemember);
 						String roleData=(cProp.getProperty(P_CLIENT, null));
 						doc = createSecondPage(cProp, request, clients, roleData, APP_USER, "");
 						//	Create adempiere Session - user id in ctx
@@ -329,17 +269,93 @@ public class WLogin extends HttpServlet
 						return;
 					}
 				}
-				
+
 			}
 		}
 		MobileUtil.createResponse (request, response, this, cProp, doc, false);
 	}	//	doPost
+	
+	private void createMenu(HttpServletRequest request, HttpServletResponse response, MobileSessionCtx wsc, String role, String client, String org, Properties cProp) throws ServletException, IOException{
+		//  Get Info from Context - User, Role, Client
+		int AD_User_ID = Env.getAD_User_ID(wsc.ctx);
+		int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
+		int AD_Client_ID = Env.getAD_Client_ID(wsc.ctx);
+		//  Not available in context yet - Org, Warehouse
+		int AD_Org_ID = -1;
+		int M_Warehouse_ID = -1;
+
+		//  Get latest info from context
+		try
+		{
+			int req_role = Integer.parseInt(role);
+			if (req_role != AD_Role_ID)
+			{
+				log.fine("AD_Role_ID - changed from " + AD_Role_ID);
+				AD_Role_ID = req_role;
+				Env.setContext(wsc.ctx, "#AD_Role_ID", AD_Role_ID);
+			}
+			log.fine("AD_Role_ID = " + AD_Role_ID);
+			//
+			int req_client = Integer.parseInt(client);
+			if (req_client != AD_Client_ID)
+			{
+				log.fine("AD_Client_ID - changed from " + AD_Client_ID);
+				AD_Client_ID = req_client;
+				Env.setContext(wsc.ctx, "#AD_Client_ID", AD_Client_ID);
+			}
+			log.fine("AD_Client_ID = " + AD_Client_ID);
+			//
+			AD_Org_ID = Integer.parseInt(org);
+			log.fine("AD_Org_ID = " + AD_Org_ID);
+			//
+		}
+		catch (Exception e)
+		{
+			log.log(Level.SEVERE, "Parameter", e);
+			MobileUtil.createTimeoutPage(request, response, this, 
+					Msg.getMsg(wsc.ctx, "ParameterMissing"));
+			return;
+		}
+
+		//  Check Login info and set environment
+		wsc.loginInfo = checkLogin (wsc.ctx, AD_User_ID, AD_Role_ID, 
+				AD_Client_ID, AD_Org_ID, M_Warehouse_ID);
+		if (wsc.loginInfo == null)
+		{
+			MobileUtil.createErrorPage (request, response, this,  
+					Msg.getMsg(wsc.ctx, "RoleInconsistent"));
+			return;
+		}
+
+		//  Set Date
+		Timestamp ts = MobileUtil.getParameterAsDate (request, WLogin.P_DATE);
+		if (ts == null)
+			ts = new Timestamp(System.currentTimeMillis());
+		Env.setContext(wsc.ctx, "#Date", ts);    //  JDBC format
+
+		cProp.setProperty(P_ROLE, Integer.toString(AD_Role_ID));
+		cProp.setProperty(P_ORG, Integer.toString(AD_Org_ID));
+		cProp.setProperty(P_CLIENT, Integer.toString(AD_Client_ID));
+		cProp.setProperty(P_USER, Integer.toString(AD_User_ID));
+		cProp.setProperty(P_REMEMBER, rememberCk.getAttribute("value"));
+		cProp.setProperty(Env.LANGUAGE, wsc.language.getAD_Language());
+
+		//  Update Cookie - overwrite
+		if (cProp != null)
+		{
+			MobileUtil.updateCookieMobileUser(request, response, cProp);
+		}
+
+		response.sendRedirect(MobileEnv.getBaseDirectory("/WMenu"));
+	}
 
 	//  Variable Names
 	private static final String		P_USERNAME      = "User";
 	private static final String		P_PASSWORD      = "Password";
-	private static final String		P_SUBMIT        = "Submit";
+	//private static final String		P_SUBMIT        = "Submit";
+	private static final String		P_REMEMBER      = "RememberMe";
 	//  WMenu picks it up
+	protected static final String   P_USER          = "AD_User_ID"; 
 	protected static final String   P_ROLE          = "AD_Role_ID";
 	protected static final String   P_CLIENT        = "AD_Client_ID";
 	protected static final String   P_ORG           = "AD_Org_ID";
@@ -347,7 +363,7 @@ public class WLogin extends HttpServlet
 	protected static final String   P_WAREHOUSE     = "M_Warehouse_ID";
 	protected static final String   P_ERRORMSG      = "ErrorMessage";
 	protected static final String   P_STORE         = "SaveCookie";
-	protected static final String	P_LANGUAGE			= "Language";
+	protected static final String	P_LANGUAGE		= "Language";
 	protected static String APP_USER = "";
 	/**
 	 *  Check Login information and set context.
@@ -412,7 +428,11 @@ public class WLogin extends HttpServlet
 		//
 		return loginInfo;
 	}   //  checkLogin
-
+	
+	private input rememberCk;
+	private input usrInput;
+	private input pwdInput;
+	private form  myForm;
 	
 	/**************************************************************************
 	 *  First Login Page
@@ -445,7 +465,7 @@ public class WLogin extends HttpServlet
 
 		//	Form - post to same URL
 		String action = request.getRequestURI();
-		form myForm = null;
+		myForm = null;
 		myForm = new form(action).setName("Login1");
 		myForm.setID(windowTitle);
 		myForm.setTitle(windowTitle);
@@ -462,9 +482,9 @@ public class WLogin extends HttpServlet
 		label usrLabel = new label().setFor(P_USERNAME + "F").addElement(usrText);
 		usrLabel.setID(P_USERNAME + "L");
 		div1.addElement(usrLabel);
-		input usr = new input(input.TYPE_TEXT, P_USERNAME, APP_USER).setSize(20).setMaxlength(30);
-		usr.setID(P_USERNAME + "F");
-		div1.addElement(usr);
+		usrInput = new input(input.TYPE_TEXT, P_USERNAME, APP_USER).setSize(20).setMaxlength(30);
+		usrInput.setID("username");
+		div1.addElement(usrInput);
 		fs.addElement(div1);
 
 		div1 = new div();
@@ -475,9 +495,9 @@ public class WLogin extends HttpServlet
 		label pwdLabel = new label().setFor(P_PASSWORD + "F").addElement(pwdText);
 		pwdLabel.setID(P_PASSWORD + "L");
 		div1.addElement(pwdLabel);
-		input pwd = new input(input.TYPE_PASSWORD, P_PASSWORD, pwdData).setSize(20).setMaxlength(30);
-		pwd.setID(P_PASSWORD + "F");
-		div1.addElement(pwd);
+		pwdInput = new input(input.TYPE_PASSWORD, P_PASSWORD, pwdData).setSize(20).setMaxlength(30);
+		pwdInput.setID("password");
+		div1.addElement(pwdInput);
 		fs.addElement(div1);
 		
 		div1 = new div();
@@ -502,7 +522,24 @@ public class WLogin extends HttpServlet
 		div1.addElement(new select(Env.LANGUAGE, options)
 			.setID(Env.LANGUAGE + "F"));
 		fs.addElement(div1);
+		
+		div1 = new div();
+		div1.setClass("row");
 
+		//  Remember me
+		String rememberText = Msg.getMsg(AD_Language, "RememberMe");
+		String rememberMe = cProp.getProperty(P_REMEMBER, "");
+		label rememberLabel = new label().setFor(P_REMEMBER + "L").addElement(rememberText);
+		rememberLabel.setID(P_REMEMBER+"L");
+		div1.addElement(rememberLabel);
+		rememberCk = new input(input.TYPE_CHECKBOX, P_REMEMBER, rememberMe).setSize(20).setMaxlength(30);
+		rememberCk.setID(P_REMEMBER);
+		rememberCk.addAttribute("checked", "true");
+		rememberCk.setValue("true");
+		rememberCk.setOnClick("checkRemember(this);");
+		div1.addElement(rememberCk);
+		fs.addElement(div1);
+			
 		div1 = new div();
 		div1.setClass("row");
 		
@@ -527,7 +564,7 @@ public class WLogin extends HttpServlet
 			fs.addElement(div1);
 		}
 		//buscamos la imagen del tema por defecto
-		StringBuffer sb = new StringBuffer();
+		//StringBuffer sb = new StringBuffer();
 		String zk_theme_value=MSysConfig.getValue("ZK_THEME");
 		
 		
