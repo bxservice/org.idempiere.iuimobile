@@ -44,3 +44,10 @@ function checkRemember(selector){
 	else if(selector.value=="false")
 		selector.value="true";
 }
+
+function changeUserName(){
+	var target = document.forms.Login1.getAttribute("target");
+	if(document.forms.Login1.getAttribute("target")=="_self"){
+		document.forms.Login1.setAttribute("target","noself");
+	}
+}
