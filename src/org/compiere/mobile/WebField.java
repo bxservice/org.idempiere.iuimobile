@@ -17,7 +17,15 @@
 package org.compiere.mobile;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.StringTokenizer;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.ecs.Element;
@@ -925,6 +933,231 @@ public class WebField
 			}
 		return menu;
 	}	//	getpopUpMenu
+	
+	/**************************************************************************
+	 *	Create default value.
+	 *  <pre>
+	 *		(a) Key/Parent/IsActive/SystemAccess
+	 *      (b) SQL Default
+	 *		(c) Column Default		//	system integrity
+	 *      (d) User Preference
+	 *		(e) System Preference
+	 *		(f) DataType Defaults
+	 *
+	 *  Don't default from Context => use explicit defaultValue
+	 *  (would otherwise copy previous record)
+	 *  </pre>
+	 *  @return default value or null
+	 */
+	public Object getDefault(String defaultValue)
+	{
+		/**
+		 *  (a) Key/Parent/IsActive/SystemAccess
+		 */
+
+		//	No defaults for these fields m_vo.IsKey ||
+		if ( m_displayType == DisplayType.RowID 
+			|| DisplayType.isLOB(m_displayType)
+			|| "Created".equals(m_columnName) // for Created/Updated default is managed on PO, and direct inserts on DB
+			|| "Updated".equals(m_columnName))
+			return null;
+		//	Always Active
+		if (m_columnName.equals("IsActive"))
+		{
+			if (log.isLoggable(Level.FINE)) log.fine("[IsActive] " + m_columnName + "=Y");
+			return "Y";
+		}
+
+		/**
+		 *  (b) SQL Statement (for data integity & consistency)
+		 */
+		String	defStr = "";
+		if (defaultValue != null && defaultValue.startsWith("@SQL="))
+		{
+			String sql = defaultValue.substring(5);	
+			if (sql.equals(""))
+			{
+				log.log(Level.WARNING, "(" + m_columnName + ") - Default SQL variable parse failed: "
+					+ defaultValue);
+			}
+			else
+			{
+				PreparedStatement stmt = null;
+				ResultSet rs = null;
+				try
+				{
+					stmt = DB.prepareStatement(sql, null);
+					rs = stmt.executeQuery();
+					if (rs.next())
+						defStr = rs.getString(1);
+					else
+					{
+						if (log.isLoggable(Level.INFO))
+							log.log(Level.INFO, "(" + m_columnName + ") - no Result: " + sql);
+					}
+				}
+				catch (SQLException e)
+				{
+					log.log(Level.WARNING, "(" + m_columnName + ") " + sql, e);
+				}
+				finally
+				{
+					DB.close(rs, stmt);
+					rs = null;
+					stmt = null;
+				}
+			}
+			if (defStr != null && defStr.length() > 0)
+			{
+				if (log.isLoggable(Level.FINE)) log.fine("[SQL] " + m_columnName + "=" + defStr);
+				return createDefault(defStr);
+			}
+		}	//	SQL Statement
+
+		/**
+		 * 	(c) Field DefaultValue		=== similar code in AStartRPDialog.getDefault ===
+		 */
+		if (defaultValue != null && !defaultValue.equals("") && !defaultValue.startsWith("@SQL="))
+		{
+			defStr = "";		//	problem is with texts like 'sss;sss'
+			//	It is one or more variables/constants
+			StringTokenizer st = new StringTokenizer(defaultValue, ",;", false);
+			while (st.hasMoreTokens())
+			{
+				defStr = st.nextToken().trim();
+				if (defStr.equals("@SysDate@"))				//	System Time
+					return new Timestamp (System.currentTimeMillis());
+				else if (defStr.indexOf("'") != -1)			//	it is a 'String'
+					defStr = defStr.replace('\'', ' ').trim();
+
+				if (!defStr.equals(""))
+				{
+					if (log.isLoggable(Level.FINE)) log.fine("[DefaultValue] " + m_columnName + "=" + defStr);
+					return createDefault(defStr);
+				 }
+			}	//	while more Tokens
+		}	//	Default value
+		/**
+		 *	(f) DataType defaults
+		 */
+
+		//	Button to N
+		if (m_displayType == DisplayType.Button && !m_columnName.endsWith("_ID"))
+		{
+			if (log.isLoggable(Level.FINE)) log.fine("[Button=N] " + m_columnName);
+			return "N";
+		}
+		//	CheckBoxes default to No
+		if (m_displayType == DisplayType.YesNo)
+		{
+			if (log.isLoggable(Level.FINE)) log.fine("[YesNo=N] " + m_columnName);
+			return "N";
+		}
+		//  lookups with one value
+	//	if (DisplayType.isLookup(m_displayType) && m_lookup.getSize() == 1)
+	//	{
+	//		/** @todo default if only one lookup value */
+	//	}
+		//  IDs remain null
+		if (m_columnName.endsWith("_ID"))
+		{
+			if (log.isLoggable(Level.FINE)) log.fine("[ID=null] "  + m_columnName);
+			return null;
+		}
+		//  actual Numbers default to zero
+		if (DisplayType.isNumeric(m_displayType))
+		{
+			if (log.isLoggable(Level.FINE)) log.fine("[Number=0] " + m_columnName);
+			return createDefault("0");
+		}
+
+		/**
+		 *  No resolution
+		 */
+		if (log.isLoggable(Level.FINE)) log.fine("[NONE] " + m_columnName);
+		return null;
+	}	//	getDefault
+	
+	/**
+	 *	Create Default Object type.
+	 *  <pre>
+	 *		Integer 	(IDs, Integer)
+	 *		BigDecimal 	(Numbers)
+	 *		Timestamp	(Dates)
+	 *		Boolean		(YesNo)
+	 *		default: String
+	 *  </pre>
+	 *  @param value string
+	 *  @return type dependent converted object
+	 */
+	private Object createDefault (String value)
+	{
+		//	true NULL
+		if (value == null || value.toString().length() == 0)
+			return null;
+		//	see also MTable.readData
+		try
+		{
+			//	IDs & Integer & CreatedBy/UpdatedBy
+			if (m_columnName.endsWith("atedBy")
+					|| (m_columnName.endsWith("_ID") && DisplayType.isID(m_displayType))) // teo_sarca [ 1672725 ] Process parameter that ends with _ID but is boolean
+			{
+				try	//	defaults -1 => null
+				{
+					int ii = Integer.parseInt(value);
+					if (ii < 0)
+						return null;
+					return new Integer(ii);
+				}
+				catch (Exception e)
+				{
+					log.warning("Cannot parse: " + value + " - " + e.getMessage());
+				}
+				return new Integer(0);
+			}
+			//	Integer
+			if (m_displayType == DisplayType.Integer)
+				return new Integer(value);
+			
+			//	Number
+			if (DisplayType.isNumeric(m_displayType))
+				return new BigDecimal(value);
+			
+			//	Timestamps
+			if (DisplayType.isDate(m_displayType))
+			{
+				// try timestamp format - then date format -- [ 1950305 ]
+				java.util.Date date = null;
+				SimpleDateFormat dateTimeFormat = DisplayType.getTimestampFormat_Default();
+				SimpleDateFormat dateFormat = DisplayType.getDateFormat_JDBC();
+				SimpleDateFormat timeFormat = DisplayType.getTimeFormat_Default();
+				try {
+					if (m_displayType == DisplayType.Date) {
+						date = dateFormat.parse (value);
+					} else if (m_displayType == DisplayType.Time) {
+						date = timeFormat.parse (value);
+					} else {
+						date = dateTimeFormat.parse (value);
+					}
+				} catch (java.text.ParseException e) {
+					date = DisplayType.getDateFormat_JDBC().parse (value);
+				}
+				return new Timestamp (date.getTime());
+			}
+			
+			//	Boolean
+			if (m_displayType == DisplayType.YesNo)
+				return Boolean.valueOf ("Y".equals(value));
+			
+			//	Default
+			return value;
+		}
+		catch (Exception e)
+		{
+			log.log(Level.SEVERE, m_columnName + " - " + e.getMessage());
+		}
+		return null;
+	}	//	createDefault
 	
 	public String getColumnName()
 	{

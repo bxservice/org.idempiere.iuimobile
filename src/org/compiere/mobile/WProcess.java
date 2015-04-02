@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.adempiere.util.ServerContext;
 import org.apache.ecs.AlignType;
 import org.apache.ecs.Element;
 import org.apache.ecs.xhtml.a;
@@ -231,6 +232,7 @@ public class WProcess extends HttpServlet
 			String columnName, GridTab mTab)
 	{
 		MProcess process = null;
+		ServerContext.setCurrentInstance(wsc.ctx);
 		if (Type == 0)
 			 process = MProcess.getFromMenu (wsc.ctx, processId);
 		else
@@ -372,10 +374,13 @@ public class WProcess extends HttpServlet
 				
 				div d = new div();
 				d.setClass("row");
-				//	Add to list
+				//Get the default Value of the process
+				Object defaultValue = wField.getDefault(para.getDefaultValue());
+
+				//Add to list
 				fs.addElement(d
 					.addElement(wField.getLabel(true))
-					.addElement(wField.getField(para.getLookup(), para.getDefaultValue()))
+					.addElement(wField.getField(para.getLookup(), defaultValue))
 					.addElement(toField));		
 			}
 			
@@ -423,6 +428,7 @@ public class WProcess extends HttpServlet
 	public void createProcessPage (HttpServletRequest request, HttpServletResponse response, int AD_Process_ID, int AD_Window_ID)
 	{
 	  	MobileSessionCtx wsc = MobileSessionCtx.get (request);
+	  	ServerContext.setCurrentInstance(wsc.ctx);				//Set the Env Ctx = wsc.ctx
 		MProcess process = MProcess.get (wsc.ctx, AD_Process_ID);
 		log.info("PI table id "+process.get_Table_ID());
 		log.info("PI table name id "+process.get_TableName());
