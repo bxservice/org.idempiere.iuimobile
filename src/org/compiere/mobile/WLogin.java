@@ -145,7 +145,8 @@ public class WLogin extends HttpServlet
 		doPost (request, response);
 	}	//	doGet
 
-
+	//Display Select Role window
+		boolean selectRole = true;
 	/**
 	 *	Process the HTTP Post request.
 	 *  <pre>
@@ -213,6 +214,7 @@ public class WLogin extends HttpServlet
 
 			//  Login info not from request and not pre-authorized
 			if (userPrincipal == null && (APP_USER == null || pwd == null)){
+				selectRole = true;
 				doc = createFirstPage (cProp, request, "");
 				String isRemember = cProp.getProperty(P_REMEMBER);
 				if(isRemember!=null && isRemember.equals("true")){
@@ -220,16 +222,40 @@ public class WLogin extends HttpServlet
 					MUser user = MUser.get(Env.getCtx(), AD_User_ID);
 					if (user != null && user.get_ID() == AD_User_ID)
 					{
+						String userName;
+						if (user.getLDAPUser() != null && user.getLDAPUser().length() > 0)
+							userName = user.getLDAPUser();
+					    else 
+							userName = user.getName();
+						
 						if (MSystem.isZKRememberUserAllowed()) {
 							if (user.getLDAPUser() != null && user.getLDAPUser().length() > 0) {
-								usrInput.setValue(user.getLDAPUser());
+								usrInput.setValue(userName);
 							} else {
-								usrInput.setValue(user.getName());
+								usrInput.setValue(userName);
 							}
 						}
 						if (MSystem.isZKRememberPasswordAllowed()) {
 							pwdInput.setValue(user.getPassword());
 						}
+						//Validates if the remembered user is a simple user (1 org, 1 client, 1 role)
+						KeyNamePair[] clients = null;
+						KeyNamePair[] roles   = null;
+						Login login = new Login(wsc.ctx);
+
+						clients = login.getClients (userName,user.getPassword());
+
+						@SuppressWarnings({ "deprecation", "unused" })
+						KeyNamePair[] rl  = login.getRoles(userName, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
+
+						if (clients != null){
+							roles = login.getRoles(userName, clients[0]);
+							if(clients.length==1 && roles.length==1 && login.getOrgs(roles[0]).length==1){
+								myForm.setTarget("_self");
+								selectRole = false;
+							}
+						}
+						pwd = "";
 					}
 				}
 			}
@@ -240,6 +266,7 @@ public class WLogin extends HttpServlet
 				MobileUtil.getParameter (request, WLogin.P_ROLE);
 
 				KeyNamePair[] clients = null;
+				KeyNamePair[] roles   = null;
 				Login login = new Login(wsc.ctx);
 				clients = login.getClients (APP_USER,pwd);
 
@@ -251,17 +278,32 @@ public class WLogin extends HttpServlet
 					APP_USER = userPrincipal.getName();
 
 				if (clients == null){
+					selectRole = true; 
 					cProp.setProperty(P_REMEMBER, "false");
 					doc = createFirstPage(cProp, request, Msg.getMsg(wsc.ctx, "UserPwdError"));
 				}
 				else
 				{
+					roles = login.getRoles(APP_USER, clients[0]);
+					if(clients.length==1 && roles.length==1 && login.getOrgs(roles[0]).length==1 && !selectRole){
+						//If is a simple user use a _self target form if it's not use a normal form
 
-					{
+						role   = roles[0].getID();
+						client = clients[0].getID();
+						org    = login.getOrgs(roles[0])[0].getID();
+						//Create adempiere Session - user id in ctx
+						MSession.get (wsc.ctx, request.getRemoteAddr(), 
+								request.getRemoteHost(), sess.getId() );
+
+						createMenu(request,response,wsc,role,client,org,cProp);
+						return;
+					}
+					else{
 						String isRemember =  MobileUtil.getParameter(request, P_REMEMBER);
 						rememberCk.setValue(isRemember);
 						String roleData=(cProp.getProperty(P_CLIENT, null));
 						doc = createSecondPage(cProp, request, clients, roleData, APP_USER, "");
+
 						//	Create adempiere Session - user id in ctx
 						MSession.get (wsc.ctx, request.getRemoteAddr(), 
 								request.getRemoteHost(), sess.getId() );
@@ -473,6 +515,7 @@ public class WLogin extends HttpServlet
 		myForm.setClass("panel");
 		myForm.setMethod("post");
 		myForm.addAttribute("autocomplete", "off");
+		myForm.addAttribute("target", "noself"); 
 		
 		fieldset fs = new fieldset();
 		div div1 = new div();
@@ -484,6 +527,7 @@ public class WLogin extends HttpServlet
 		div1.addElement(usrLabel);
 		usrInput = new input(input.TYPE_TEXT, P_USERNAME, APP_USER).setSize(20).setMaxlength(30);
 		usrInput.setID("username");
+		usrInput.setOnChange("changeUserName();");
 		div1.addElement(usrInput);
 		fs.addElement(div1);
 
