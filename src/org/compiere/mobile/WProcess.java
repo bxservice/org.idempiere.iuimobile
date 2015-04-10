@@ -50,6 +50,7 @@ import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
 import org.apache.ecs.xhtml.tr;
 import org.compiere.model.GridTab;
+import org.compiere.model.I_AD_Process;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MBankStatement;
 import org.compiere.model.MInOut;
@@ -96,6 +97,7 @@ public class WProcess extends HttpServlet
 	/**	Logger			*/
 	protected CLogger	log = CLogger.getCLogger(getClass());
 	//Modified by Rob Klein 4/29/07
+	@SuppressWarnings("unused")
 	private String errorMessage = null;
 	private static String[]		s_value = null;
 	private static String[]		s_name;
@@ -129,7 +131,8 @@ public class WProcess extends HttpServlet
 		
 	  	MobileSessionCtx wsc = MobileSessionCtx.get(request);
 		//Modified by Rob Klein 4/29/07
-	  	WWindowStatus ws = WWindowStatus.get(request);
+	  	@SuppressWarnings("unused")
+		WWindowStatus ws = WWindowStatus.get(request);
 		if (wsc == null)
 		{
 			MobileUtil.createTimeoutPage(request, response, this, null);
@@ -140,6 +143,7 @@ public class WProcess extends HttpServlet
 		//  Get Parameter: Menu_ID
 		//Modified by Rob Klein 4/29/07
 		int AD_Menu_ID = MobileUtil.getParameterAsInt(request, "AD_Menu_ID");		
+		@SuppressWarnings("unused")
 		String fileName = MobileUtil.getParameter(request, "File");
 		if (AD_Menu_ID > 0)
 		{
@@ -204,10 +208,7 @@ public class WProcess extends HttpServlet
 		}
 		int AD_Process_ID = MobileUtil.getParameterAsInt(request, "AD_Process_ID");
 		//Modified by Rob Klein 4/29/07
-		int AD_Window_ID = MobileUtil.getParameterAsInt(request, "AD_Window_ID");
-		int AD_Table_ID = MobileUtil.getParameterAsInt(request, "AD_Table_ID");
-		int AD_Record_ID = MobileUtil.getParameterAsInt(request, "AD_Record_ID");		
-		
+		int AD_Window_ID = MobileUtil.getParameterAsInt(request, "AD_Window_ID");		
 		
 		if (AD_Process_ID == 0)
 		{
@@ -424,158 +425,163 @@ public class WProcess extends HttpServlet
 	 * 	@param request request
 	 *	@param AD_Process_ID Process
 	 *	@return Page
+	 * @throws IOException 
 	 */
-	public void createProcessPage (HttpServletRequest request, HttpServletResponse response, int AD_Process_ID, int AD_Window_ID)
+	public void createProcessPage (HttpServletRequest request, HttpServletResponse response, int AD_Process_ID, int AD_Window_ID) throws IOException
 	{
-	  	MobileSessionCtx wsc = MobileSessionCtx.get (request);
-	  	ServerContext.setCurrentInstance(wsc.ctx);				//Set the Env Ctx = wsc.ctx
+		MobileSessionCtx wsc = MobileSessionCtx.get (request);
+		ServerContext.setCurrentInstance(wsc.ctx);				//Set the Env Ctx = wsc.ctx
 		MProcess process = MProcess.get (wsc.ctx, AD_Process_ID);
-		log.info("PI table id "+process.get_Table_ID());
-		log.info("PI table name id "+process.get_TableName());
-		log.info("PI table client id "+process.getAD_Client_ID());
-		log.info("PI table process id "+process.getAD_Process_ID());
-		log.info("PI  process class name "+process.getClassname());
-		
 		//	need to check if Role can access
 		MobileDoc doc = null;
+
 		if (process == null)
 		{
-			 doc = MobileDoc.createWindow("Process Not Found");
-
+			doc = MobileDoc.createWindow("Process Not Found");
 		}
 		else{
+			log.info("PI table id "+process.get_Table_ID());
+			log.info("PI table name id "+process.get_TableName());
+			log.info("PI table client id "+process.getAD_Client_ID());
+			log.info("PI table process id "+process.getAD_Process_ID());
+			log.info("PI  process class name "+process.getClassname());
+
 			doc = MobileDoc.createWindow(process.getName());
-		fieldset center = new fieldset();
-		doc.getBody().addElement(center);
-		if (process.getDescription() != null)
-			center.addElement(new p(new i(process.getDescription())));
-		if (process.getHelp() != null)
-			center.addElement(new p(process.getHelp(), AlignType.LEFT));
-		
-		//	Create Process Instance
-		MPInstance pInstance = fillParameter (request, process);
-		//		
-		
-		int AD_Table_ID = MobileUtil.getParameterAsInt(request, "AD_Table_ID");
-		int AD_Record_ID = MobileUtil.getParameterAsInt(request, "AD_Record_ID");		
-		
-		
-		ProcessInfo pi = new ProcessInfo (process.getName(), process.getAD_Process_ID(), AD_Table_ID, AD_Record_ID);		
-		pi.setAD_User_ID(Env.getAD_User_ID(wsc.ctx));
-		pi.setAD_Client_ID(Env.getAD_Client_ID(wsc.ctx));
-		pi.setClassName(process.getClassname());
-		log.info("PI client id "+pi.getAD_Client_ID());
-		pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());			
-		
-		//	Info
-		p p = new p();
-		p.addElement(Msg.translate(wsc.ctx, "AD_PInstance_ID") + ": " + pInstance.getAD_PInstance_ID());
-		center.addElement(p);
-		
-		//	Start
-		boolean processOK = false;
-		if (process.isWorkflow())
-		{
-			Trx trx = Trx.get(Trx.createTrxName("WebPrc"), true);
-			try
-			{	
-				WProcessCtl.process(this, AD_Window_ID, pi, trx, request); 
-				//processOK = process.processIt(pi, trx);			
-				trx.commit();
-				trx.close();
-			}
-			catch (Throwable t)
+			fieldset center = new fieldset();
+			doc.getBody().addElement(center);
+			if (process.getDescription() != null)
+				center.addElement(new p(new i(process.getDescription())));
+			if (process.getHelp() != null)
+				center.addElement(new p(process.getHelp(), AlignType.LEFT));
+
+			//	Create Process Instance
+			MPInstance pInstance = fillParameter (request, process);
+			//		
+
+			int AD_Table_ID = MobileUtil.getParameterAsInt(request, "AD_Table_ID");
+			int AD_Record_ID = MobileUtil.getParameterAsInt(request, "AD_Record_ID");		
+
+
+			ProcessInfo pi = new ProcessInfo (process.getName(), process.getAD_Process_ID(), AD_Table_ID, AD_Record_ID);		
+			pi.setAD_User_ID(Env.getAD_User_ID(wsc.ctx));
+			pi.setAD_Client_ID(Env.getAD_Client_ID(wsc.ctx));
+			pi.setClassName(process.getClassname());
+			log.info("PI client id "+pi.getAD_Client_ID());
+			pi.setAD_PInstance_ID(pInstance.getAD_PInstance_ID());			
+
+			//	Info
+			p p = new p();
+			p.addElement(Msg.translate(wsc.ctx, "AD_PInstance_ID") + ": " + pInstance.getAD_PInstance_ID());
+			center.addElement(p);
+
+			//	Start
+			boolean processOK = false;
+			if (process.isWorkflow())
 			{
-				trx.rollback();
-				trx.close();
-			}
-			if ( pi.isError())
-			{
-				center.addElement(new p("Error:" + pi.getSummary(), 
-					AlignType.LEFT).setClass("Cerror"));
-				processOK = false;
-			}
-			else
-			{
-				center.addElement(new p("OK: Workflow Started", 
-						AlignType.LEFT));
-					processOK = true;
-			}
-			center.addElement(new p().addElement(pi.getSummary()));
-			center.addElement(pi.getLogInfo(true));
-		}
-		
-		String jasper=process.getJasperReport();
-		if (process.isJavaProcess())
-		{
-			if (jasper!=null) {
-				pi.setPrintPreview (false);
-				pi.setIsBatch(true);
-			}
-			Trx trx = Trx.get(Trx.createTrxName("WebPrc"), true);
-			try
-			{				
-				processOK = process.processIt(pi, trx);			
-				trx.commit();
-				trx.close();
-			}
-			catch (Throwable t)
-			{
-				trx.rollback();
-				trx.close();
-			}
-			if (!processOK || pi.isError())
-			{
-				center.addElement(new p("Error:" + pi.getSummary(), 
-					AlignType.LEFT).setClass("Cerror"));
-				processOK = false;
-			} else {
-				if(jasper!=null) {
-					String error = MobileUtil.streamFile(response, pi.getPDFReport());
-					//String error = streamResult (request, response, pInstance.getAD_PInstance_ID(), file);
-					if (error == null)
-						return;
-					doc = MobileDoc.create(error);
-					wsc.ctx.put("AD_PInstance_ID=" + pInstance.getAD_PInstance_ID(), "ok");
-				} else {
-					center.addElement(new p().addElement(pi.getSummary()));
-					center.addElement(pi.getLogInfo(true));
+				Trx trx = Trx.get(Trx.createTrxName("WebPrc"), true);
+				try
+				{	
+					WProcessCtl.process(this, AD_Window_ID, pi, trx, request); 
+					//processOK = process.processIt(pi, trx);			
+					trx.commit();
+					trx.close();
 				}
-			}
-		}
-		
-		//	Report
-		if (process.isReport())
-		//if (processOK && process.isReport())
-		{
-			//doc = null;
-			
-			
-			
-			if(jasper==null) {
-				log.info(response.toString());
-				ReportEngine re = ReportEngine.get(wsc.ctx, pi);
-				if (re == null)
+				catch (Throwable t)
 				{
-					center.addElement(new p("Could not start ReportEngine", 
-						AlignType.LEFT).setClass("Cerror"));
+					trx.rollback();
+					trx.close();
+				}
+				if ( pi.isError())
+				{
+					center.addElement(new p("Error:" + pi.getSummary(), 
+							AlignType.LEFT).setClass("Cerror"));
+					processOK = false;
 				}
 				else
 				{
-					try
+					center.addElement(new p("OK: Workflow Started", 
+							AlignType.LEFT));
+					processOK = true;
+				}
+				center.addElement(new p().addElement(pi.getSummary()));
+				center.addElement(pi.getLogInfo(true));
+			}
+
+			String jasper=process.getJasperReport();
+			if (process.isJavaProcess())
+			{
+				if (jasper!=null) {
+					pi.setPrintPreview (false);
+					pi.setIsBatch(true);
+				}
+				Trx trx = Trx.get(Trx.createTrxName("WebPrc"), true);
+				try
+				{				
+					processOK = process.processIt(pi, trx);			
+					trx.commit();
+					trx.close();
+				}
+				catch (Throwable t)
+				{
+					trx.rollback();
+					trx.close();
+				}
+				if (!processOK || pi.isError())
+				{
+					center.addElement(new p("Error:" + pi.getSummary(), 
+							AlignType.LEFT).setClass("Cerror"));
+					processOK = false;
+				} else {
+					if(jasper!=null) {
+						StringBuilder fileName = new StringBuilder(process.get_Translation(I_AD_Process.COLUMNNAME_Name));
+						response.setHeader("Content-Disposition", "inline; filename="+fileName.toString()+ ".pdf" );
+						String error = MobileUtil.streamFile(response, pi.getPDFReport());
+						//String error = streamResult (request, response, pInstance.getAD_PInstance_ID(), file);
+						if (error == null)
+							return;
+						doc = MobileDoc.create(error);
+						wsc.ctx.put("AD_PInstance_ID=" + pInstance.getAD_PInstance_ID(), "ok");
+					} else {
+						center.addElement(new p().addElement(pi.getSummary()));
+						center.addElement(pi.getLogInfo(true));
+					}
+				}
+			}
+
+			//	Report
+			if (process.isReport())
+				//if (processOK && process.isReport())
+			{
+				//doc = null;
+
+
+
+				if(jasper==null) {
+					log.info(response.toString());
+					ReportEngine re = ReportEngine.get(wsc.ctx, pi);
+					if (re == null)
 					{
-						File file = File.createTempFile("WProcess", ".pdf");
-						boolean ok = re.createPDF(file);
-						if (ok)
-						{	
-							String error = MobileUtil.streamFile(response, file);
-							//String error = streamResult (request, response, pInstance.getAD_PInstance_ID(), file);
-							if (error == null)
-								return;
-							doc = MobileDoc.create(error);
-							
-							//Modified by Rob Klein 6/1/07
-							/**
+						center.addElement(new p("Could not start ReportEngine", 
+								AlignType.LEFT).setClass("Cerror"));
+					}
+					else
+					{
+						try
+						{
+							StringBuilder fileName = new StringBuilder(process.get_Translation(I_AD_Process.COLUMNNAME_Name));
+							response.setHeader("Content-Disposition", "inline; filename="+fileName.toString()+ ".pdf" );
+							File file = File.createTempFile(fileName.toString(), ".pdf");
+							boolean ok = re.createPDF(file);
+							if (ok)
+							{	
+								String error = MobileUtil.streamFile(response, file);
+								//String error = streamResult (request, response, pInstance.getAD_PInstance_ID(), file);
+								if (error == null)
+									return;
+								doc = MobileDoc.create(error);
+
+								//Modified by Rob Klein 6/1/07
+								/**
 							String url = "WProcess?AD_PInstance_ID=" 
 								+ pInstance.getAD_PInstance_ID()
 								+ "&File=" 
@@ -586,26 +592,26 @@ public class WProcess extends HttpServlet
 									.addElement("Report created: ")
 									.addElement(link));
 							//	Marker that Process is OK
-							 * */
-							wsc.ctx.put("AD_PInstance_ID=" + pInstance.getAD_PInstance_ID(), "ok");
-							
+								 * */
+								wsc.ctx.put("AD_PInstance_ID=" + pInstance.getAD_PInstance_ID(), "ok");
+
+							}
+							else
+								center.addElement(new p("Could not create Report", 
+										AlignType.LEFT).setClass("Cerror"));
 						}
-						else
-							center.addElement(new p("Could not create Report", 
-								AlignType.LEFT).setClass("Cerror"));
-					}
-					catch (Exception e)
-					{
-						center.addElement(new p("Could not create Report:", 
-							AlignType.LEFT).setClass("Cerror"));
-						center.addElement(e.toString());
+						catch (Exception e)
+						{
+							center.addElement(new p("Could not create Report:", 
+									AlignType.LEFT).setClass("Cerror"));
+							center.addElement(e.toString());
+						}
 					}
 				}
 			}
 		}
-		}
 		// doc.addPopupClose(wsc.ctx);
-		
+
 		try {
 			MobileUtil.createResponse(request, response, this, null, doc, false);
 		} catch (IOException e) {
@@ -715,6 +721,7 @@ public class WProcess extends HttpServlet
 	 *	@param fileName file to stream
 	 *	@return message
 	 */
+	@SuppressWarnings("unused")
 	private String streamResult (HttpServletRequest request, HttpServletResponse response,
 		int AD_PInstance_ID, File file)
 	{
