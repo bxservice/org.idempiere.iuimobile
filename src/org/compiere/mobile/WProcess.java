@@ -337,7 +337,11 @@ public class WProcess extends HttpServlet
 			//
 			myForm.setMethod("get");
 			myForm.setAction(MobileEnv.getBaseDirectory("WProcess?AD_Process_ID=" + process.getAD_Process_ID()));
-			myForm.setTarget("_self");
+
+			//If the Process is not a Report, show the Menu Button
+			if(process.getJasperReport()!= null || process.isReport())
+				myForm.setTarget("_self");
+
 			//myForm.setOnSubmit("this.Submit.disabled=true;return true;");
 			myForm.addElement(new input(input.TYPE_HIDDEN, "AD_Process_ID", process.getAD_Process_ID()));
 			myForm.addElement(new input(input.TYPE_HIDDEN, "AD_Window_ID", windowID));

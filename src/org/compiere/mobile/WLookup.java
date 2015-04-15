@@ -90,10 +90,13 @@ public class WLookup extends HttpServlet
 	protected volatile ArrayList<Object>   p_data = new ArrayList<Object>();
 	
 	private static final int    MAX_LINES   = 99999;
+	@SuppressWarnings("unused")
 	private int m_recordCount;
 	private int m_colCount;
 	private String[] m_searchFields;
 	private String[] m_searchLabels;
+	private boolean  isProcessLookUp = false;
+	private boolean  isProcessButtonLookUp = false;
 	
 	private StringBuffer m_HeaderSelect = null;
 	private MobileSessionCtx wsc=null;
@@ -144,6 +147,20 @@ public class WLookup extends HttpServlet
 		//Lookup modified to include paging
 		//Modified by Rob Klein 07/07/07
 		int page = MobileUtil.getParameterAsInt(request, "page");
+		
+		isProcessLookUp = false;
+		isProcessButtonLookUp = false;
+		
+		String referer = request.getHeader("referer");
+		if(referer.toLowerCase().contains("wprocess"))
+			isProcessLookUp = true;
+		if( referer.toLowerCase().contains("wwindow") 
+				&& MobileUtil.getParameter (request, "AD_Process_ID") != null 
+				&& !referer.toLowerCase().contains("action=insert") 
+				&& !referer.toLowerCase().contains("action=edit") ){
+			isProcessButtonLookUp = true;
+			isProcessLookUp = true;			
+		}
 		
 		int refValueId = 0;
 		boolean startUpdate = false;
@@ -520,11 +537,23 @@ public class WLookup extends HttpServlet
 					button.addElement(img);
 					
 					StringBuffer script = new StringBuffer();
+					
+					// Check which function should be call depending on the reference
+					String processToCall = "";
+					if(isProcessButtonLookUp)
+						processToCall= "startLookUpdateProcess";
+					else
+						processToCall= "startLookUpdate";
+					
 					script
-						.append("startLookUpdate(").append(targetBase).append("D',")
+						.append(processToCall+"(").append(targetBase).append("D',")
 						.append(targetBase).append("F','").append(rs.getString(colKey)).append("',")
-						.append(targetBase).append("D','").append(rs.getString(colDisplay))
-						.append("');startUpdate(").append(targetBase).append("');return false;");
+						.append(targetBase).append("D','").append(rs.getString(colDisplay));
+					
+					if(!isProcessLookUp)
+						script.append("');startUpdate(").append(targetBase);
+						
+						script.append("');return false;");
 					button.setOnClick(script.toString());
 				//
 					tr line = new tr();
