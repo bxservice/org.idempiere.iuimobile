@@ -99,6 +99,11 @@
 		<servlet-name>WFindAdv</servlet-name>
 		<servlet-class>org.compiere.mobile.WFindAdv</servlet-class>
 	</servlet>
+		<servlet>
+		<display-name>iDempiere Process Parameter</display-name>
+		<servlet-name>WProcessPara</servlet-name>
+		<servlet-class>org.compiere.mobile.WProcessMobileDialog</servlet-class>
+	</servlet>
     <servlet-mapping>
       <servlet-name> DisplayChart </servlet-name> 
       <url-pattern>/DisplayChart</url-pattern> 
@@ -150,6 +155,10 @@
 	<servlet-mapping>
 		<servlet-name>WFindAdv</servlet-name>
 		<url-pattern>/WFindAdv</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>WProcessPara</servlet-name>
+		<url-pattern>/WProcessPara</url-pattern>
 	</servlet-mapping>
 	<session-config>
 		<session-timeout>15</session-timeout>

@@ -194,6 +194,7 @@ public class WWindow extends HttpServlet
 
 		String action = MobileUtil.getParameter(request, "action");
 		String strSQL=MobileUtil.getParameter(request, "txtSQL");
+		String strProcessId=MobileUtil.getParameter(request, "AD_Process_ID");
 		MTab tb = null;		 
 		
 		
@@ -205,6 +206,24 @@ public class WWindow extends HttpServlet
 			//
 			log.fine("Fini");
 		//	log.trace(log.l6_Database, doc.toString());
+			MobileUtil.createResponse (request, response, this, null, doc, false);
+			return;
+		}
+	 	else if ( "process".equals(action) )
+		{
+			System.out.println("Process Activated");
+			log.fine("Button!");
+			//log.trace(log.l6_Database, doc.toString());
+			executeCommand(request,"Process",wsc,ws);
+			ws.setRO(true);
+			ws.curTab.setSingleRow(false);
+			ws.curTab.query(false);
+			ws.curTab.navigate(0);
+			tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+			if(tb.get_Value("BAY_MobileFormat")!=null) 
+				doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+			else 
+				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0); 
 			MobileUtil.createResponse (request, response, this, null, doc, false);
 			return;
 		}
@@ -301,6 +320,30 @@ public class WWindow extends HttpServlet
 			doc = getSR_Form(request.getRequestURI(), wsc, ws);
 			MobileUtil.createResponse (request, response, this, null, doc, false);
 			return;
+		}
+		else if ( strProcessId != null && !strProcessId.isEmpty() ) //DR
+		{
+			String value=MobileUtil.getParameter(request, "C_Invoice_ID");
+			String docno=MobileUtil.getParameter(request, "AD_Window_ID");
+			String name=MobileUtil.getParameter(request, "AD_Table_ID");
+			String desc=MobileUtil.getParameter(request, "AD_Record_ID");
+
+			/*if (value!=null && value.length()!=0) query.addRestriction("UPPER(Value)", MQuery.LIKE, "%"+value.toUpperCase()+"%");
+			if (docno!=null && docno.length()!=0) query.addRestriction("UPPER(DocumentNo)", MQuery.LIKE, "%"+docno.toUpperCase()+"%");
+			if (name!=null && name.length()!=0) query.addRestriction("UPPER(Name)", MQuery.LIKE, "%"+name.toUpperCase()+"%");
+			if (desc!=null && desc.length()!=0) query.addRestriction("(UPPER(Description", MQuery.LIKE, "%"+desc.toUpperCase()+"%");
+
+			ws.setRO(true);
+			ws.curTab.setSingleRow(false);
+			//ws.curTab.setQuery(query);
+			ws.curTab.query(false);
+			ws.curTab.navigate(0);
+			tb = new MTab(ws.ctx, ws.curTab.getAD_Tab_ID(), null); 
+			if(tb.get_Value("BAY_MobileFormat")!=null) 
+				doc = getMR_Form (request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0, tb); 
+			else 
+				doc = getMR_Form(request.getRequestURI(), wsc, ws, ws.curTab.getTabLevel() == 0);				MobileUtil.createResponse (request, response, this, null, doc, false);
+				return;*/
 		}
 
 		String tab = request.getParameter("tab");
@@ -603,6 +646,14 @@ public class WWindow extends HttpServlet
 		else if (p_cmd.equals("Delete"))
 		{
 			ws.curTab.dataDelete();
+		}
+		
+		/**
+		 *  Process
+		 */
+		else if (p_cmd.equals("Process"))
+		{
+			//ws.curTab.;//DRuiz
 		}
 
 		/**
@@ -1101,6 +1152,13 @@ public class WWindow extends HttpServlet
 			a1.setClass("redButton");
 			a1.setTarget("_self");
 			div.addElement(a1);
+			doc.getBody().addElement(div);
+			
+			//div1.setClass("footer");
+			a a2 = new a("WProcessPara", Msg.getMsg(wsc.language, "Process"));
+			a2.setID("processButton");
+			a2.setClass("redButton");
+			div.addElement(a2);
 			doc.getBody().addElement(div);
 		}
 

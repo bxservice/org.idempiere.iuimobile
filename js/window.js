@@ -412,6 +412,28 @@ function startLookUpdate(column, name1, value1, name2, value2)
 	document.body.removeChild(document.getElementById("WLookup2"));
 }	//	startLookUpdate
 
+/****************************************************************************
+ *	Lookup Field Updated Popup Process - submit
+ */
+function startLookUpdateProcess(column, name1, value1, name2, value2)
+{
+	document.getElementById(name2).focus();
+	document.getElementById(name1).value = value1;
+	display = document.getElementById(name2)
+	if ( display.tagName == "A" )
+		display.firstChild.data=value2;
+	else
+		display.value = value2;
+	document.body.removeChild(document.getElementById("WLookup1"));
+	document.body.removeChild(document.getElementById("WLookup2"));
+	document.getElementById("WProcessPara1").setAttribute("selected","true");
+}	//	startLookUpdateProcess
+
+function removeProcessPopups()
+{
+	document.body.removeChild(document.getElementById("WProcessPara"));
+	document.body.removeChild(document.getElementById("WProcessPara1"));
+}	//	startLookUpdateProcess
 
 /****************************************************************************
  *	Process Button

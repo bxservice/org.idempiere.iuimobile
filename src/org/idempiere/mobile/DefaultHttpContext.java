@@ -2,7 +2,7 @@ package org.idempiere.mobile;
 
 import java.io.IOException;
 import java.net.URL;
-import org.adempiere.plugin.utils.AdempiereActivator;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
