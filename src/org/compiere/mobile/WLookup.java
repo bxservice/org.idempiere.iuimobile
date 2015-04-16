@@ -156,8 +156,7 @@ public class WLookup extends HttpServlet
 			isProcessLookUp = true;
 		if( referer.toLowerCase().contains("wwindow") 
 				&& MobileUtil.getParameter (request, "AD_Process_ID") != null 
-				&& !referer.toLowerCase().contains("action=insert") 
-				&& !referer.toLowerCase().contains("action=edit") ){
+				&& MobileUtil.getParameter (request, "AD_Process_ID") != "0"  ){
 			isProcessButtonLookUp = true;
 			isProcessLookUp = true;			
 		}
