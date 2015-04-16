@@ -94,7 +94,7 @@ public class WZoom extends HttpServlet
 		}
 		else
 		{
-			String error = null;
+			//String error = null;
 			int AD_Record_ID = MobileUtil.getParameterAsInt(request, P_Record_ID);
 			int AD_Table_ID = MobileUtil.getParameterAsInt(request, P_Table_ID);
 			if (AD_Record_ID == 0 || AD_Table_ID == 0)
@@ -125,8 +125,8 @@ public class WZoom extends HttpServlet
 		throws ServletException, IOException
 	{
 		
-		HttpSession sess = request.getSession(false);
-		WWindowStatus ws = WWindowStatus.get(request);
+		/*HttpSession sess = request.getSession(false);
+		WWindowStatus ws = WWindowStatus.get(request);*/
 		MobileDoc doc = null;
 		//		
 			doc = MobileDoc.create ("Help - Post Not Implemented");

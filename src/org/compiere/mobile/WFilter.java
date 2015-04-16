@@ -56,7 +56,7 @@ public final class WFilter implements javax.servlet.Filter
 
 		//  List all Parameters
 		log.info(filterConfig.getFilterName());
-		Enumeration en = filterConfig.getInitParameterNames();
+		Enumeration<?> en = filterConfig.getInitParameterNames();
 		while (en.hasMoreElements())
 		{
 			String name = en.nextElement().toString();
@@ -165,7 +165,7 @@ public final class WFilter implements javax.servlet.Filter
 				log.log(Level.SEVERE, "Set CharacterEndocung=" + MobileEnv.ENCODING, e);
 			}
 			//  print parameter
-			Enumeration en = request.getParameterNames();
+			Enumeration<?> en = request.getParameterNames();
 			while (en.hasMoreElements())
 			{
 				String name = (String)en.nextElement();

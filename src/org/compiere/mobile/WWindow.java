@@ -323,10 +323,10 @@ public class WWindow extends HttpServlet
 		}
 		else if ( strProcessId != null && !strProcessId.isEmpty() ) //DR
 		{
-			String value=MobileUtil.getParameter(request, "C_Invoice_ID");
+			/*String value=MobileUtil.getParameter(request, "C_Invoice_ID");
 			String docno=MobileUtil.getParameter(request, "AD_Window_ID");
 			String name=MobileUtil.getParameter(request, "AD_Table_ID");
-			String desc=MobileUtil.getParameter(request, "AD_Record_ID");
+			String desc=MobileUtil.getParameter(request, "AD_Record_ID");*/
 
 			/*if (value!=null && value.length()!=0) query.addRestriction("UPPER(Value)", MQuery.LIKE, "%"+value.toUpperCase()+"%");
 			if (docno!=null && docno.length()!=0) query.addRestriction("UPPER(DocumentNo)", MQuery.LIKE, "%"+docno.toUpperCase()+"%");

@@ -28,7 +28,7 @@ public class  WStatusArrayList
 		ws.setStatusName(createStatusName());
         statusArray.add(ws);
 	}
-    private ArrayList       statusArray=new ArrayList();
+    private ArrayList<WWindowStatus>       statusArray= new ArrayList<WWindowStatus>();
 	public static final String STATUSLIST="WStatusArrayList";
 
     public static WStatusArrayList get(HttpServletRequest request)
@@ -57,6 +57,7 @@ public class  WStatusArrayList
 		}
 		return null;
 	}
+	@SuppressWarnings("unused")
 	public void deleteFromStatusArray(String name)
 	{
 		int len=statusArray.size();

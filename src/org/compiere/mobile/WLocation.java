@@ -26,9 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.ecs.AlignType;
 import org.apache.ecs.xhtml.a;
-import org.apache.ecs.xhtml.b;
 import org.apache.ecs.xhtml.button;
 import org.apache.ecs.xhtml.div;
 import org.apache.ecs.xhtml.fieldset;
@@ -37,12 +35,7 @@ import org.apache.ecs.xhtml.h1;
 import org.apache.ecs.xhtml.input;
 import org.apache.ecs.xhtml.label;
 import org.apache.ecs.xhtml.option;
-import org.apache.ecs.xhtml.p;
-import org.apache.ecs.xhtml.script;
 import org.apache.ecs.xhtml.select;
-import org.apache.ecs.xhtml.table;
-import org.apache.ecs.xhtml.td;
-import org.apache.ecs.xhtml.tr;
 import org.compiere.model.GridField;
 import org.compiere.model.MCountry;
 import org.compiere.model.MLocation;
@@ -121,6 +114,7 @@ public class WLocation extends HttpServlet
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		log.fine("");
+		@SuppressWarnings("unused")
 		HttpSession sess = request.getSession();
 		WWindowStatus ws = WWindowStatus.get(request);
 		if (ws == null)
@@ -197,6 +191,7 @@ public class WLocation extends HttpServlet
 		throws ServletException, IOException
 	{
 		log.fine("");
+		@SuppressWarnings("unused")
 		HttpSession sess = request.getSession();
 		WWindowStatus ws = WWindowStatus.get(request);
 		if (ws == null)

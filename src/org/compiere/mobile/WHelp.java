@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.compiere.util.CLogger;
-import org.compiere.util.Env;
 
 @WebServlet(
 		name="WHelp",
@@ -52,6 +51,7 @@ public class WHelp extends HttpServlet
 		throws ServletException, IOException
 	{
 		log.fine("doGet");
+		@SuppressWarnings("unused")
 		WWindowStatus ws = WWindowStatus.get(request);
 		MobileDoc doc = null;
 		
