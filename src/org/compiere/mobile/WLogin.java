@@ -57,6 +57,7 @@ import org.compiere.model.MSession;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MSystem;
 import org.compiere.model.MUser;
+import org.compiere.model.Query;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -317,7 +318,24 @@ public class WLogin extends HttpServlet
 		MobileUtil.createResponse (request, response, this, cProp, doc, false);
 	}	//	doPost
 	
-	private void createMenu(HttpServletRequest request, HttpServletResponse response, MobileSessionCtx wsc, String role, String client, String org, Properties cProp) throws ServletException, IOException{
+	private void createMenu(HttpServletRequest request, HttpServletResponse response, MobileSessionCtx wsc, String role, String client, String org, Properties cProp) throws ServletException, IOException
+	{
+		MUser usertmp=new MUser(Env.getCtx(), Env.getAD_User_ID(wsc.ctx), null);
+		if(usertmp.getName().compareTo("System")!=0 && usertmp.getName().compareTo("SuperUser")!=0){
+			String where="AD_Client_ID=?";
+			if(MSysConfig.getValue("USE_EMAIL_FOR_LOGIN").compareTo("Y")==0){
+				
+				where+=" AND email='" + usertmp.getEMail() +"'";
+			}else{
+				where+=" AND name='" +usertmp.getName() +"'";
+			}
+			
+			MUser user=new Query(Env.getCtx(),MUser.Table_Name,where,null).setParameters(Env.getAD_Client_ID(wsc.ctx)).first();
+			Env.setContext(wsc.ctx, "#AD_User_Name", user.getName());
+			Env.setContext(wsc.ctx, "#AD_User_ID", user.getAD_User_ID());
+			Env.setContext(wsc.ctx, "#SalesRep_ID", user.getAD_User_ID());
+		}
+		
 		//  Get Info from Context - User, Role, Client
 		int AD_User_ID = Env.getAD_User_ID(wsc.ctx);
 		int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
