@@ -68,7 +68,7 @@ window.iui =
 
 	showPageByHref: function(href, args, method, replace, cb)
 	{
-		
+		console.trace();
 		//alert(href+" "+method+" "+replace+" "+cb);
 		var req = new XMLHttpRequest();
 		req.onerror = function()
@@ -216,8 +216,11 @@ addEventListener("click", function(event)
 			    form.submit();
 			    return;  // return so we don't preventDefault
 			}
-			if(link.getAttribute("id")=="save"){ submitFormSave(form);} 
-			submitForm(form);
+			if(link.getAttribute("id")=="save"){ 
+				submitFormSave(form);
+			}
+			else
+			   submitForm(form);
 		}
 		else if (link.getAttribute("type") == "cancel")
 			cancelDialog(findParent(link, "form"));

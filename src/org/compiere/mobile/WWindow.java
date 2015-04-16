@@ -211,7 +211,6 @@ public class WWindow extends HttpServlet
 		}
 	 	else if ( "process".equals(action) )
 		{
-			System.out.println("Process Activated");
 			log.fine("Button!");
 			//log.trace(log.l6_Database, doc.toString());
 			executeCommand(request,"Process",wsc,ws);
