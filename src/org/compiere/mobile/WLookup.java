@@ -156,7 +156,7 @@ public class WLookup extends HttpServlet
 			isProcessLookUp = true;
 		if( referer.toLowerCase().contains("wwindow") 
 				&& MobileUtil.getParameter (request, "AD_Process_ID") != null 
-				&& MobileUtil.getParameter (request, "AD_Process_ID") != "0"  ){
+				&& !MobileUtil.getParameter (request, "AD_Process_ID").equals("0")  ){
 			isProcessButtonLookUp = true;
 			isProcessLookUp = true;			
 		}
@@ -452,6 +452,7 @@ public class WLookup extends HttpServlet
 	 * @param targetBase    target field string
 	 * @return  Lookup Rows in List Format
 	 */
+	@SuppressWarnings("unused")
 	private table fillTable_Lookup_Rows (MobileSessionCtx wsc, String columnName, int fieldRefId,
 			table table1, String targetBase, boolean mandatory, boolean onlyValidated, boolean onlyActive,
 			boolean temporary, int page, String where)
@@ -598,7 +599,7 @@ public class WLookup extends HttpServlet
 	{
 		
 		String sqlSelect = null;	
-		input filter = null;
+		//input filter = null;
 		if (fieldRefId > 0)
 			sqlSelect = "SELECT ColumnName, Name FROM AD_Column WHERE AD_Table_ID IN (SELECT AD_Table_ID FROM AD_Ref_Table WHERE AD_Reference_ID = " + fieldRefId + ") ORDER BY SEQNO";			
 		else	

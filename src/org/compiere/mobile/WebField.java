@@ -134,7 +134,9 @@ public class WebField
 	private String 	m_columnName;
 	private String	m_name;
 	private String	m_description;
+	@SuppressWarnings("unused")
 	private String  m_callOut;
+	@SuppressWarnings("unused")
 	private GridTab m_Tab;
 	private GridField m_Field;
 	private MRole m_Role;
@@ -142,11 +144,15 @@ public class WebField
 	private Object	m_defaultObject;
 	private int		m_displayType;
 	private int		m_processID;
+	@SuppressWarnings("unused")
 	private int		m_windowID;
+	@SuppressWarnings("unused")
 	private int		m_tableID;
+	@SuppressWarnings("unused")
 	private int		m_recordID;
 	private int		m_fieldLength;
 	private int		m_displayLength;
+	@SuppressWarnings("unused")
 	private boolean	m_longField;
 	//
 	private boolean	m_readOnly;
@@ -393,6 +399,7 @@ public class WebField
 	 * 	@param data initial value
 	 *	@return td
 	 */
+	@SuppressWarnings("unused")
 	private Element getDateField (Object data)
 	{
 		String formattedData = "";
@@ -580,6 +587,7 @@ public class WebField
 		*/
 		//Start Popup Menu
 		//Add by Rob Klein 6/6/2007		
+		@SuppressWarnings("unused")
 		a buttonFlyout = null;
 		String menu = null;		
 		

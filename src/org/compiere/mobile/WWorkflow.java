@@ -103,7 +103,7 @@ private  static  String  AD_Language = null;
 Properties ctx = null;
 
 /** Window Number Counter                   */
-private static int          s_WindowNo  = 1;
+//private static int          s_WindowNo  = 1;
 
 
 	public void init(ServletConfig config)
@@ -153,7 +153,7 @@ private static int          s_WindowNo  = 1;
 		int AD_Menu_ID = MobileUtil.getParameterAsInt(request, "AD_Menu_ID");
 
         //  Get Parameter: Menu_ID
-		int AD_Window_ID = MobileUtil.getParameterAsInt(request, "AD_Window_ID");
+		//int AD_Window_ID = MobileUtil.getParameterAsInt(request, "AD_Window_ID");
 
 
 		 //set language
@@ -168,7 +168,7 @@ private static int          s_WindowNo  = 1;
 		//get session attributes
 		MWorkflow wf      = (MWorkflow)sess.getAttribute(WORKFLOW);
         MWFNode [] nodes  = (MWFNode []) sess.getAttribute( NODES);
-        ArrayList nodes_ID = (ArrayList) sess.getAttribute( NODES_ID);
+        ArrayList<?> nodes_ID = (ArrayList<?>) sess.getAttribute( NODES_ID);
         int [][] imageMap = (int [][] )sess.getAttribute( IMAGE_MAP);
         int    activeNode = ((Integer) sess.getAttribute( ACTIVE_NODE)).intValue();
 
@@ -212,7 +212,7 @@ private static int          s_WindowNo  = 1;
 		//get session attributes
 		MWorkflow wf      = (MWorkflow)sess.getAttribute(WORKFLOW);
         MWFNode [] nodes  = (MWFNode []) sess.getAttribute( NODES);
-        ArrayList nodes_ID = (ArrayList) sess.getAttribute( NODES_ID);
+        ArrayList<?> nodes_ID = (ArrayList<?>) sess.getAttribute( NODES_ID);
         int [][] imageMap = (int [][] )sess.getAttribute( IMAGE_MAP);
         int    activeNode = ((Integer) sess.getAttribute( ACTIVE_NODE)).intValue();
 
@@ -231,7 +231,7 @@ private static int          s_WindowNo  = 1;
 //get updated session attributes
 		 wf      = (MWorkflow)sess.getAttribute(WORKFLOW);
         nodes  = (MWFNode []) sess.getAttribute( NODES);
-        nodes_ID = (ArrayList) sess.getAttribute( NODES_ID);
+        nodes_ID = (ArrayList<?>) sess.getAttribute( NODES_ID);
          imageMap = (int [][] )sess.getAttribute( IMAGE_MAP);
            activeNode = ((Integer) sess.getAttribute( ACTIVE_NODE)).intValue();
 
@@ -252,7 +252,7 @@ private static int          s_WindowNo  = 1;
 	 *  @param nodes
 	 *  @return int [][]
 	 */
-private int [][] generateImageMap(ArrayList nodes_ID){
+private int [][] generateImageMap(ArrayList<?> nodes_ID){
 
 // number of nodes
 int numOfNode = nodes_ID.size();
@@ -377,7 +377,7 @@ return imageMap;
 	 *
 	 *  @return table
 	 */
-private table printWorkflow(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList nodes_ID,int [][] imageMap){
+private table printWorkflow(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList<?> nodes_ID,int [][] imageMap){
 
 //create a new table
 table imageTable = new table();
@@ -496,7 +496,7 @@ return imageTable;
 	 *
 	 *  @return table
 	 */
-private table printDescription(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList nodes_ID){
+private table printDescription(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList<?> nodes_ID){
 //create new table
 table desTable = new table();
 
@@ -537,7 +537,7 @@ return desTable;
 	 *
 	 *  @return int
 	 */
-private int getIndex(int node_ID, ArrayList nodes_ID){
+private int getIndex(int node_ID, ArrayList<?> nodes_ID){
 
 int index = 0;
 
@@ -562,7 +562,7 @@ return index;
 	 *
 	 *  @return form
 	 */
-private form printControlPanel(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList nodes_ID){
+private form printControlPanel(int activeNode, MWorkflow wf, MWFNode [] nodes, ArrayList<?> nodes_ID){
 //create a new form
 form myForm = new form(FORM_ACTION, form.METHOD_POST, form.ENC_DEFAULT);
 myForm.addElement(new input("hidden", M_Command, ""));
@@ -741,7 +741,7 @@ js_command_front= js_command_front + "document." + FORM_NAME + ".submit();";
 	 *
 	 *  @return WReportEngine
 	 */
-private MobileDoc createLayout(MobileDoc doc , MWorkflow wf,int activeNode,MWFNode [] nodes, ArrayList nodes_ID, int [][] imageMap){
+private MobileDoc createLayout(MobileDoc doc , MWorkflow wf,int activeNode,MWFNode [] nodes, ArrayList<?> nodes_ID, int [][] imageMap){
 body b= doc.getBody();
 
 b.addElement(printWorkflow(activeNode, wf,  nodes, nodes_ID, imageMap));
@@ -769,7 +769,7 @@ private void loadWorkflow(Properties ctx, int AD_Workflow_ID, HttpSession sess) 
 		//get the MWFNode in order
 		MWFNode[] nodes = wf.getNodes(true,Env.getContextAsInt(ctx, "#AD_Client_ID"));
 		MWFNode wfn=null;
-		ArrayList nodes_ID = new ArrayList();
+		ArrayList<Integer> nodes_ID = new ArrayList<Integer>();
 		for (int i = 0; i < nodes.length; i++)
 		{
 		wfn= nodes[i];
@@ -798,7 +798,7 @@ sess.setAttribute( ACTIVE_NODE,new Integer(-999));
 	 *  @param sess
 	 *
 	 */
-private void executeCommand(String m_command, int j_command , MWorkflow wf,int activeNode, MWFNode [] nodes,ArrayList nodes_ID, HttpSession sess){
+private void executeCommand(String m_command, int j_command , MWorkflow wf,int activeNode, MWFNode [] nodes,ArrayList<?> nodes_ID, HttpSession sess){
 if (j_command != 0 )
 {
 sess.setAttribute(ACTIVE_NODE, new Integer(j_command));
@@ -807,8 +807,8 @@ return;
 
 debug(m_command,"m_command in executeCommand");
 //check first or last node
-boolean isFirst = wf.isFirst(activeNode,Env.getContextAsInt(ctx, "#AD_Client_ID"));
-boolean isLast = wf.isLast(activeNode,Env.getContextAsInt(ctx, "#AD_Client_ID"));
+/*boolean isFirst = wf.isFirst(activeNode,Env.getContextAsInt(ctx, "#AD_Client_ID"));
+boolean isLast = wf.isLast(activeNode,Env.getContextAsInt(ctx, "#AD_Client_ID"));*/
 
 boolean notReady = false;
 int updatedActiveNode =  activeNode;
@@ -860,6 +860,7 @@ private int getAD_Workflow_ID(int AD_Menu_ID){
 				+ "WHERE AD_Menu_ID=? AND Action='F'";
 			try
 			{
+				@SuppressWarnings("deprecation")
 				PreparedStatement pstmt = DB.prepareStatement(sql);
 				pstmt.setInt(1, AD_Menu_ID);
 				ResultSet rs = pstmt.executeQuery();
@@ -917,6 +918,7 @@ System.out.println("*************"+name+"="+variable);
 else
 System.out.println("*************"+name+" is null");
 }//debug
+@SuppressWarnings("unused")
 private void printMap(int [][] map){
 final int ROW = map.length;
 final int COL = map[0].length;

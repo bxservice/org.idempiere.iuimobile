@@ -17,8 +17,6 @@
 package org.compiere.mobile;
 
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -99,7 +97,7 @@ public class WMenu extends HttpServlet
 	} // destroy
 
 	/** */
-	private PreparedStatement	m_pstmt;
+	//private PreparedStatement	m_pstmt;
 
 	/***************************************************************************
 	 * Process the HTTP Get request. - Exit (Logout) - AD_Window_ID Forward to
@@ -151,7 +149,7 @@ public class WMenu extends HttpServlet
 		int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
 		int AD_Client_ID = Env.getAD_Client_ID(wsc.ctx);
 		int AD_Org_ID = Env.getAD_Client_ID(wsc.ctx); 
-		String AD_Language = Env.getAD_Language(wsc.ctx);
+		//String AD_Language = Env.getAD_Language(wsc.ctx);
 
 		if ( wsc.loginInfo != null && wsc.loginInfo.length() > 0 )
 		{
@@ -228,7 +226,7 @@ public class WMenu extends HttpServlet
 		MTree tree = new MTree (wsc.ctx, AD_Tree_ID, false, false, null);	// Language set in WLogin
 		//	Trim tree
 		MTreeNode root = tree.getRoot();
-		Enumeration en = root.preorderEnumeration();
+		Enumeration<?> en = root.preorderEnumeration();
 
 		tree.trimTree();
 		
@@ -288,8 +286,8 @@ public class WMenu extends HttpServlet
 	{
 		StringBuffer sb = new StringBuffer();
 		//get theme from sys conf
-		PreparedStatement pst = null;
-		ResultSet rs = null;
+		/*PreparedStatement pst = null;
+		ResultSet rs = null;*/
 		String zk_theme_value=MSysConfig.getValue("ZK_THEME");
 		String imgName=null;
     	

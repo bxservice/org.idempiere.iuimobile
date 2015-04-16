@@ -120,6 +120,7 @@ public class WProcessCtl extends Thread
 		m_trx = trx;	//	handeled correctly
 	}   //  ProcessCtl
 
+	@SuppressWarnings("unused")
 	private Object    m_parent;	
 	private Properties    m_wscctx;
 	private ProcessInfo     m_pi;
@@ -362,6 +363,7 @@ public class WProcessCtl extends Thread
 	 *  @param AD_Workflow_ID workflow
 	 *  @return     true if started
 	 */
+	@SuppressWarnings("deprecation")
 	private boolean startWorkflow (int AD_Workflow_ID)
 	{
 		log.fine(AD_Workflow_ID + " - " + m_pi);
@@ -410,10 +412,12 @@ public class WProcessCtl extends Thread
 	 *
 	 *  @return     true if success
 	 */
+	@SuppressWarnings("deprecation")
 	private boolean startProcess ()
 	{
 		log.fine(m_pi.toString());
 		boolean started = false;
+		//Deprecated - always return false
 		if (DB.isRemoteProcess())
 		{
 			Server server = CConnection.get().getServer();
@@ -458,7 +462,7 @@ public class WProcessCtl extends Thread
 			ProcessCall myObject = null;
 			try
 			{
-				Class myClass = Class.forName(m_pi.getClassName());
+				Class<?> myClass = Class.forName(m_pi.getClassName());
 				myObject = (ProcessCall)myClass.newInstance();
 				if (myObject == null)
 					m_pi.setSummary("No Instance for " + m_pi.getClassName(), true);

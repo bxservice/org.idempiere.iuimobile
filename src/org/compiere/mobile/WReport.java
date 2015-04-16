@@ -95,7 +95,6 @@ public class WReport extends HttpServlet
 		log.info(response.toString());
 		WebSessionCtx wsc = WebSessionCtx.get(request);
 		WWindowStatus ws = WWindowStatus.get(request);
-		m_curTab = ws.curTab;
 		//
 		WebDoc doc = null;
 		File file = null;
@@ -114,6 +113,7 @@ public class WReport extends HttpServlet
 			doc = WebDoc.createWindow(error);
 		}**/
 		else{
+			m_curTab = ws.curTab;
 			log.info("");
 			if (!MRole.getDefault().isCanReport(ws.curTab.getAD_Table_ID()))
 			{				
@@ -187,7 +187,7 @@ public class WReport extends HttpServlet
 	private File getPrintFormats (int AD_Table_ID,HttpServletRequest request, GridTab	m_curTab, MQuery m_query )
 	{
 		WebSessionCtx wsc = WebSessionCtx.get(request);
-		WWindowStatus ws = WWindowStatus.get(request);
+		//WWindowStatus ws = WWindowStatus.get(request);
 		int AD_Client_ID = Env.getAD_Client_ID(wsc.ctx);
 		File file = null;
 		m_list =  new ArrayList<KeyNamePair>();
@@ -281,12 +281,13 @@ public class WReport extends HttpServlet
 	 * 	Launch Report
 	 * 	@param pf print format
 	 */
+	@SuppressWarnings("unused")
 	private File launchReport (MPrintFormat pf, HttpServletRequest request,  GridTab	m_curTab, MQuery m_query)
 	{
 		int Record_ID = 0;
 		
 		WebSessionCtx wsc = WebSessionCtx.get(request);
-		WWindowStatus ws = WWindowStatus.get(request);
+		//WWindowStatus ws = WWindowStatus.get(request);
 		//Instance pInstance = new MPInstance (wsc.ctx, 0, 0);
 		
 		File fileName = null;
@@ -313,11 +314,8 @@ public class WReport extends HttpServlet
 			// It's a default report using the standard printing engine
 			ReportEngine re = new ReportEngine (wsc.ctx, pf, m_query, info);			
 			if (re == null)
-			{
-				log.info("Could not start ReportEngine");				
-			}
+				log.info("Could not start ReportEngine");
 			else
-			{
 				try
 				{
 					File file = File.createTempFile("WProcess", ".pdf");
@@ -334,7 +332,6 @@ public class WReport extends HttpServlet
 				{
 					log.info(e.toString());					
 				}
-			}
 		}		
 		//doc.addPopupClose(wsc.ctx);		
 		

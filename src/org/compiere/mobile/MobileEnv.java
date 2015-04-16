@@ -18,7 +18,6 @@ package org.compiere.mobile;
 
 import java.sql.Timestamp;
 import java.util.Enumeration;
-import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.servlet.ServletConfig;
@@ -43,8 +42,6 @@ import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
 import org.apache.ecs.xhtml.tr;
 import org.compiere.Adempiere;
-import org.compiere.model.MClient;
-import org.compiere.model.MSystem;
 import org.compiere.util.CLogMgt;
 import org.compiere.util.CLogger;
 
@@ -116,7 +113,7 @@ public class MobileEnv
 			return true;
 		}
 
-		Enumeration en = config.getInitParameterNames();
+		Enumeration<?> en = config.getInitParameterNames();
 		StringBuffer info = new StringBuffer("Servlet Init Parameter: ")
 			.append(config.getServletName());
 		while (en.hasMoreElements())
@@ -149,7 +146,7 @@ public class MobileEnv
 		}
 		
 		//  Load Environment Variables (serverApps/src/web/WEB-INF/web.xml)
-		Enumeration en = context.getInitParameterNames();
+		Enumeration<?> en = context.getInitParameterNames();
 		StringBuffer info = new StringBuffer("Servlet Context Init Parameters: ")
 			.append(context.getServletContextName());
 		while (en.hasMoreElements())
@@ -174,9 +171,9 @@ public class MobileEnv
 		//	Logging now initiated
 		log.info(info.toString());
 		//
-		Properties ctx = new Properties();
-		MClient client = MClient.get(ctx, 0);
-		MSystem system = MSystem.get(ctx);
+		//Properties ctx = new Properties();
+		//MClient client = MClient.get(ctx, 0);
+		//MSystem system = MSystem.get(ctx);
 		//client.sendEMail(client.getRequestEMail(), 
 		//	"Server started: " + system.getName(), 
 		//	"ServerInfo: " + context.getServerInfo(), null);
@@ -303,7 +300,7 @@ public class MobileEnv
 		if (!CLogMgt.isLevelFiner())
 			return;
 		boolean first = true;
-		Enumeration e = config.getInitParameterNames();
+		Enumeration<?> e = config.getInitParameterNames();
 		while (e.hasMoreElements())
 		{
 			if (first)
@@ -326,7 +323,7 @@ public class MobileEnv
 		if (!CLogMgt.isLevelFiner())
 			return;
 		boolean first = true;
-		Enumeration e = ctx.getInitParameterNames();
+		Enumeration<?> e = ctx.getInitParameterNames();
 		while (e.hasMoreElements())
 		{
 			if (first)
@@ -360,7 +357,7 @@ public class MobileEnv
 		if (!CLogMgt.isLevelFiner())
 			return;
 		boolean first = true;
-		Enumeration e = session.getAttributeNames();
+		Enumeration<?> e = session.getAttributeNames();
 		while (e.hasMoreElements())
 		{
 			if (first)
@@ -395,7 +392,7 @@ public class MobileEnv
 		log.finer("- UserPrincipal=" + request.getUserPrincipal());
 		//
 		boolean first = true;
-		Enumeration e = request.getHeaderNames();
+		Enumeration<?> e = request.getHeaderNames();
 		/** Header Names */
 		while (e.hasMoreElements())
 		{
@@ -522,7 +519,7 @@ public class MobileEnv
 	{
 		table table = new table();
 		table.setID("DEBUG");
-		Enumeration e;
+		Enumeration<?> e;
 
 		tr space = new tr().addElement(new td().addElement("."));
 		//	Request Info
