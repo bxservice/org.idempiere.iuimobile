@@ -107,6 +107,7 @@ public class LoginDynUpdate extends HttpServlet
 			clientId = Integer.parseInt(client); 
 		}
 		catch (Exception e) {
+			log.log(Level.SEVERE, e.toString());
 			clientId = -1;
 		}
 		String role = request.getParameter("AD_Role_ID");
@@ -115,6 +116,7 @@ public class LoginDynUpdate extends HttpServlet
 			roleId = Integer.parseInt(role); 
 		}
 		catch (Exception e) {
+			log.log(Level.SEVERE, e.toString());
 			roleId = -1;
 		}
 		Login login = new Login(wsc.ctx);
