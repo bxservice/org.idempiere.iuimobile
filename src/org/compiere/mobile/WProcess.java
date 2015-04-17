@@ -307,7 +307,7 @@ public class WProcess extends HttpServlet
 				//	Submit
 				 text = "Submit";
 				if (wsc.ctx != null)
-					text = Msg.getMsg (wsc.ctx, "Submit");		
+					text = Msg.getMsg (wsc.ctx, "submit");		
 				input submitbtn = new input(input.TYPE_SUBMIT, text, "  "+text);		
 				submitbtn.setID(text);
 				submitbtn.setClass("submitbtn");
@@ -394,7 +394,7 @@ public class WProcess extends HttpServlet
 			//	Submit
 			String text = "Submit";
 			if (wsc.ctx != null)
-				text = Msg.getMsg (wsc.ctx, "Submit");		
+				text = Msg.getMsg (wsc.ctx, "submit");		
 			a submitbtn = new a( "#",text);
 			submitbtn.setClass("whiteButton");
 			submitbtn.addAttribute("type", "submit");
