@@ -625,13 +625,14 @@ public class WLogin extends HttpServlet
 			div1.addElement(new font(HtmlColor.red, 4).addElement(new b(errorMessage)));   //  color, size
 			fs.addElement(div1);
 		}
-		//buscamos la imagen del tema por defecto
+		// search default image for theme
 		//StringBuffer sb = new StringBuffer();
 		String zk_theme_value=MSysConfig.getValue("ZK_THEME");
-		
-		
+		String urldef = "/webui/theme/"+zk_theme_value+"/images/login-logo.png";
+		String imgdef = MSysConfig.getValue(MSysConfig.ZK_LOGO_LARGE, urldef);
+
 		img img=new img();
-		img.setSrc("/webui/theme/"+zk_theme_value+"/images/login-logo.png");
+		img.setSrc(imgdef);
 		
 
 		div div0 = new div();
@@ -675,7 +676,7 @@ public class WLogin extends HttpServlet
 			.addElement(myForm)
 			.setTitle(windowTitle);
 
-			doc.getHead().addElement(new link("/webui/theme/"+zk_theme_value+"/images/login-logo.png","icon","image/png"));
+			doc.getHead().addElement(new link(imgdef,"icon","image/png"));
 			doc.getHead().addElement(new script((Element)null, MobileEnv.getBaseDirectory("/js/login.js")));	
 		}
 		else{
