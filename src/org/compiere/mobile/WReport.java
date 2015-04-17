@@ -199,11 +199,13 @@ public class WReport extends HttpServlet
 				+ "ORDER BY AD_Client_ID DESC, IsDefault DESC, Name",		//	Own First
 			"AD_PrintFormat", MRole.SQL_NOTQUALIFIED, MRole.SQL_RO);
 		KeyNamePair pp = null;
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql, null);
 			pstmt.setInt(1, AD_Table_ID);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
 				pp = new KeyNamePair (rs.getInt(1), rs.getString(2));
@@ -213,12 +215,15 @@ public class WReport extends HttpServlet
 					//m_popup.add(pp.toString()).addActionListener(this);
 				}
 			}
-			rs.close();
-			pstmt.close();
 		}
 		catch (SQLException e)
 		{
 			log.log(Level.SEVERE, sql, e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
 		}
 
 		//	No Format exists - create it
@@ -350,19 +355,24 @@ public class WReport extends HttpServlet
 	{
 		int AD_Table_ID = 0;
 		String sql = "SELECT AD_Table_ID FROM AD_Table WHERE TableName=?";
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql, null);
 			pstmt.setString(1, TableName);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			if (rs.next())
 				AD_Table_ID = rs.getInt(1);
-			rs.close();
-			pstmt.close();
 		}
 		catch (SQLException e)
 		{
 			//log.log(Level.SEVERE, sql, e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
 		}
 		return AD_Table_ID;
 	}	//	getAD_Table_ID

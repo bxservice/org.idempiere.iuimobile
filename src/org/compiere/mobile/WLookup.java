@@ -357,22 +357,27 @@ public class WLookup extends HttpServlet
 		ArrayList<String> columns = new ArrayList<String>();
 		ArrayList<String> names = new ArrayList<String>();
 		
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{			
-			PreparedStatement pstmt = DB.prepareStatement(sqlSelect.toString(), null);			
-			ResultSet rs = pstmt.executeQuery();
+			pstmt = DB.prepareStatement(sqlSelect.toString(), null);			
+			rs = pstmt.executeQuery();
 			while (rs.next()){
 				columns.add(rs.getString(1));
 				names.add(rs.getString(2));
 			}
 			
-			rs.close();
-			pstmt.close();
 			
 		}
 		catch (SQLException e)
 		{
 			log.log(Level.SEVERE, sqlSelect.toString(), e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
 		}
 		
 		m_searchFields = columns.toArray(new String[columns.size()]);
@@ -471,10 +476,12 @@ public class WLookup extends HttpServlet
 			String whereClause = null;
 			String orderBy = null;
 			
+			PreparedStatement pstmt = null;			
+			ResultSet rs = null;
 			try
 			{			
-				PreparedStatement pstmt = DB.prepareStatement(sql.toString(), null);			
-				ResultSet rs = pstmt.executeQuery();			
+				pstmt = DB.prepareStatement(sql.toString(), null);			
+				rs = pstmt.executeQuery();			
 						
 				if (rs.next()){					
 					tableID = rs.getInt(1);	
@@ -485,12 +492,15 @@ public class WLookup extends HttpServlet
 					colKey = DB.getSQLValueString(null, sql, rs.getInt(2));
 					colDisplay = DB.getSQLValueString(null, sql, rs.getInt(3));
 				}
-				rs.close();
-				pstmt.close();
 			}
 			catch (SQLException e)
 			{
 				log.log(Level.SEVERE, sql.toString(), e);
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+				rs = null; pstmt = null;
 			}
 		
 			sql = "Select TableName FROM AD_Table Where AD_Table_ID = ?";
@@ -518,13 +528,15 @@ public class WLookup extends HttpServlet
 			else
 				colDisplay="Description";
 		}		
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{	
-			PreparedStatement pstmt = DB.prepareStatement(sqlSelect.toString(),
+			pstmt = DB.prepareStatement(sqlSelect.toString(),
 					ResultSet.TYPE_SCROLL_INSENSITIVE,	ResultSet.CONCUR_READ_ONLY, null);
 			
 			pstmt.setInt(1, Env.getAD_Client_ID(wsc.ctx));						
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			log.info("This is the page number "+page);
 			log.info("This is the MAX_LINES "+MAX_LINES);
 			//rs.absolute(((page-1)*MAX_LINES)+1);			
@@ -572,16 +584,16 @@ public class WLookup extends HttpServlet
 			
 			//count
 			m_recordCount = DB.getSQLValue(null, sqlCount.toString(),Env.getAD_Client_ID(wsc.ctx));
-				
-			
-			rs.close();
-			pstmt.close();
-			
 		}		
 		catch (SQLException e)
 		{
 			log.log(Level.SEVERE, sql.toString(), e);
 		}		
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
+		}
 		return table1;
 	}   //  fillTable_Lookup_Rows
 
@@ -614,10 +626,12 @@ public class WLookup extends HttpServlet
 			m_colCount=1;
 		} 
 		
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{			
-			PreparedStatement pstmt = DB.prepareStatement(sqlSelect.toString(), null);			
-			ResultSet rs = pstmt.executeQuery();
+			pstmt = DB.prepareStatement(sqlSelect.toString(), null);			
+			rs = pstmt.executeQuery();
 					
 			
 			String col;
@@ -635,14 +649,15 @@ public class WLookup extends HttpServlet
 					}
 				}
 			}
-			
-			rs.close();
-			pstmt.close();
-			
 		}
 		catch (SQLException e)
 		{
 			log.log(Level.SEVERE, sqlSelect.toString(), e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
 		}
 		return line;
 

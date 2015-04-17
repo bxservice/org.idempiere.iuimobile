@@ -1041,10 +1041,12 @@ public class WProcess extends HttpServlet
 		ArrayList<String> v_value = new ArrayList<String>();
 		ArrayList<String> v_name = new ArrayList<String>();
 		ArrayList<String> v_description = new ArrayList<String>();
+		PreparedStatement pstmt = null;			
+		ResultSet rs = null;
 		try
 		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
-			ResultSet rs = pstmt.executeQuery();
+			pstmt = DB.prepareStatement(sql, null);
+			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
 				String value = rs.getString(1);
@@ -1057,12 +1059,15 @@ public class WProcess extends HttpServlet
 				v_name.add(name);
 				v_description.add(description);
 			}
-			rs.close();
-			pstmt.close();
 		}
 		catch (SQLException e)
 		{
 			log.log(Level.SEVERE, sql, e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null; pstmt = null;
 		}
 
 		//	convert to arrays
