@@ -858,21 +858,25 @@ private int getAD_Workflow_ID(int AD_Menu_ID){
  int AD_Workflow_ID=0;
  String sql = "SELECT AD_Workflow_ID FROM AD_Menu "
 				+ "WHERE AD_Menu_ID=? AND Action='F'";
+	PreparedStatement pstmt = null;			
+	ResultSet rs = null;
 			try
 			{
-				@SuppressWarnings("deprecation")
-				PreparedStatement pstmt = DB.prepareStatement(sql);
+				pstmt = DB.prepareStatement(sql, null);
 				pstmt.setInt(1, AD_Menu_ID);
-				ResultSet rs = pstmt.executeQuery();
+				rs = pstmt.executeQuery();
 				while (rs.next())
 					AD_Workflow_ID= rs.getInt(1);
-				rs.close();
-				pstmt.close();
 			}
 			catch (SQLException e)
 			{
 
 				e.printStackTrace();
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+				rs = null; pstmt = null;
 			}
 return AD_Workflow_ID;
 }//getAD_Workflow_ID
