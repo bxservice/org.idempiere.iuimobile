@@ -246,7 +246,7 @@ public class WProcess extends HttpServlet
 			return doc;
 		}
 		//Modified by Rob Klein 4/29/07
-		MobileDoc doc = MobileDoc.createWindow(process.getName());
+		MobileDoc doc = MobileDoc.createWindow(process.get_Translation("Name"));
 		if (process.isWorkflow())
 		{
 			//Modified by Rob Klein 7/01/07
@@ -274,10 +274,10 @@ public class WProcess extends HttpServlet
 						false, false, false, false, false, processId,
 						0, 0, 0, 0, null, null, null, null, null);
 				
-				if (process.getDescription() != null)
-					center.addElement(new p(new i(process.getDescription())));
-				if (process.getHelp() != null)
-					center.addElement(new p(process.getHelp(), AlignType.LEFT));
+				if (process.get_Translation("Description") != null)
+					center.addElement(new p(new i(process.get_Translation("Description"))));
+				if (process.get_Translation("Help") != null)
+					center.addElement(new p(process.get_Translation("Help"), AlignType.LEFT));
 				form myForm = new form ("WProcess")
 					.setName("process" + process.getAD_Process_ID());
 
@@ -327,13 +327,13 @@ public class WProcess extends HttpServlet
 		}
 		else{		
 			form myForm = new form ()
-			.setName(process.getName());
+			.setName(process.get_Translation("Name"));
 			myForm.addAttribute("selected", "true");
 			myForm.setClass("panel");
-			if (process.getDescription() != null)
-				myForm.addElement(new p(new i(process.getDescription())));
-			if (process.getHelp() != null)
-				myForm.addElement(new p(process.getHelp(), AlignType.LEFT));
+			if (process.get_Translation("Description") != null)
+				myForm.addElement(new p(new i(process.get_Translation("Description"))));
+			if (process.get_Translation("Help") != null)
+				myForm.addElement(new p(process.get_Translation("Help"), AlignType.LEFT));
 			//
 			myForm.setMethod("get");
 			myForm.setAction(MobileEnv.getBaseDirectory("WProcess?AD_Process_ID=" + process.getAD_Process_ID()));
@@ -355,7 +355,7 @@ public class WProcess extends HttpServlet
 			{			
 				MProcessPara para = parameter[i];			
 				WebField wField = new WebField (wsc,
-					para.getColumnName(), para.getName(), para.getDescription(),
+					para.getColumnName(), para.get_Translation("Name"), para.get_Translation("Description"),
 					//	no display length
 					para.getAD_Reference_ID(), para.getFieldLength(), para.getFieldLength(), false,
 					// 	not r/o, ., not error, not dependent
@@ -366,7 +366,7 @@ public class WProcess extends HttpServlet
 				
 				if(para.isRange())				
 					wFieldforRange = new WebField (wsc,
-						para.getColumnName(), para.getName(), para.getDescription(),
+						para.getColumnName(), para.get_Translation("Name"), para.get_Translation("Description"),
 						//	no display length
 						para.getAD_Reference_ID(), para.getFieldLength(), para.getFieldLength(), false,
 						// 	not r/o, ., not error, not dependent
@@ -450,13 +450,13 @@ public class WProcess extends HttpServlet
 			log.info("PI table process id "+process.getAD_Process_ID());
 			log.info("PI  process class name "+process.getClassname());
 
-			doc = MobileDoc.createWindow(process.getName());
+			doc = MobileDoc.createWindow(process.get_Translation("Name"));
 			fieldset center = new fieldset();
 			doc.getBody().addElement(center);
-			if (process.getDescription() != null)
-				center.addElement(new p(new i(process.getDescription())));
-			if (process.getHelp() != null)
-				center.addElement(new p(process.getHelp(), AlignType.LEFT));
+			if (process.get_Translation("Description") != null)
+				center.addElement(new p(new i(process.get_Translation("Description"))));
+			if (process.get_Translation("Help") != null)
+				center.addElement(new p(process.get_Translation("Help"), AlignType.LEFT));
 
 			//	Create Process Instance
 			MPInstance pInstance = fillParameter (request, process);
@@ -466,7 +466,7 @@ public class WProcess extends HttpServlet
 			int AD_Record_ID = MobileUtil.getParameterAsInt(request, "AD_Record_ID");		
 
 
-			ProcessInfo pi = new ProcessInfo (process.getName(), process.getAD_Process_ID(), AD_Table_ID, AD_Record_ID);		
+			ProcessInfo pi = new ProcessInfo (process.get_Translation("Name"), process.getAD_Process_ID(), AD_Table_ID, AD_Record_ID);		
 			pi.setAD_User_ID(Env.getAD_User_ID(wsc.ctx));
 			pi.setAD_Client_ID(Env.getAD_Client_ID(wsc.ctx));
 			pi.setClassName(process.getClassname());
@@ -590,7 +590,7 @@ public class WProcess extends HttpServlet
 								+ pInstance.getAD_PInstance_ID()
 								+ "&File=" 
 								+ URLEncoder.encode(file.getAbsolutePath(), WebEnv.ENCODING);
-							a link = new a (url, null, a.TARGET_BLANK, process.getName());
+							a link = new a (url, null, a.TARGET_BLANK, process.get_Translation("Name"));
 							center
 								.addElement(new p()
 									.addElement("Report created: ")
