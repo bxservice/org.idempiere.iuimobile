@@ -347,8 +347,7 @@ public class WMenu extends HttpServlet
 			sb.append("<li class=\"" + cssClassName
 				+ "\" id=\"" + node.getNode_ID()			//	debug
 				+ "\">" +
-				"<img src=\"/webui/theme/"+zk_theme_value+"/images/"+imgName+"\" class=\"menuImage\">" +
-						
+				"<img src=\"/webui/theme/"+zk_theme_value+"/images/"+imgName+"\" class=\"menuImage\" align=\"left\">" +
 						"<a href=\"");
 			//	Get URL
 			boolean standardURL = true;

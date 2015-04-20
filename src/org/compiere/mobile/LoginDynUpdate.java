@@ -47,8 +47,8 @@ public class LoginDynUpdate extends HttpServlet
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1576213475379404148L;
-	
+	private static final long serialVersionUID = -1851849733892815968L;
+
 	/**	Static Logger	*/
 	private static CLogger	log	= CLogger.getCLogger (LoginDynUpdate.class);
 	
@@ -125,8 +125,7 @@ public class LoginDynUpdate extends HttpServlet
 		if (clientId >= 0 )
 		{
 			//  Get Data
-			KeyNamePair[] roles = login.getRoles (usr,
-					new KeyNamePair(clientId , client));
+			KeyNamePair[] roles = WLogin.filterMobileRoles(login.getRoles(usr, new KeyNamePair(clientId , client)));
 
 			//  Set Client ----
 			script.append("\"roles\":[");

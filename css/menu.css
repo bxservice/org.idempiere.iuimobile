@@ -31,7 +31,7 @@
 
 
 .menuWindow	{
-	list-style: circle inside url(../images/mWindow.gif); /* Menu Item */
+	list-style: circle; /* Menu Item */
 }
 
 .menuWorkflow	{
@@ -39,11 +39,11 @@
 }
 
 .menuReport	{
-	list-style: disc inside url(../images/mReport.gif); /* Menu Item */
+	list-style: disc; /* Menu Item */
 }
 
 .menuProcess	{
-	list-style: disc inside url(../images/mProcess.gif); /* Menu Item */
+	list-style: disc; /* Menu Item */
 }
 
 .menuSummary	{
