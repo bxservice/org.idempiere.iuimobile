@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -96,8 +97,8 @@ public class WLogin extends HttpServlet
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -407753489095758837L;
-	
+	private static final long serialVersionUID = -5241051762495956961L;
+
 	/**	Logger			*/
 	protected CLogger	log = CLogger.getCLogger(getClass());
 	
@@ -250,7 +251,7 @@ public class WLogin extends HttpServlet
 						KeyNamePair[] rl  = login.getRoles(userName, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
 
 						if (clients != null){
-							roles = login.getRoles(userName, clients[0]);
+							roles = WLogin.filterMobileRoles(login.getRoles(userName, clients[0]));
 							if(clients.length==1 && roles.length==1 && login.getOrgs(roles[0]).length==1){
 								myForm.setTarget("_self");
 								selectRole = false;
@@ -739,19 +740,9 @@ public class WLogin extends HttpServlet
 
 		Login login = new Login(wsc.ctx);
 		//  Get Data
-		KeyNamePair[] roles = null; // the full list of roles
-		KeyNamePair[] mobileRoles = null; // roles enabled for mobile access
-		ArrayList<KeyNamePair> mobileRolesList = new ArrayList<KeyNamePair>();
+		KeyNamePair[] roles = null; // roles enabled for mobile access
 		if (clientOptions.length > 0) {
-			roles = login.getRoles(APP_USER, clients[0]);
-
-			//TODO  Only keep roles that are not designed for mobile
-			for (int i = 0; i < roles.length; i++) {
-				if (new MRole(Env.getCtx(), roles[i].getKey(), null).get_ValueAsBoolean("IsMobileEnabled")) 
-					mobileRolesList.add(roles[i]);
-			}
-			mobileRoles = new KeyNamePair[mobileRolesList.size()];
-			mobileRolesList.toArray(mobileRoles);
+			roles = WLogin.filterMobileRoles(login.getRoles(APP_USER, clients[0]));
 		}
 		//	Role Pick
 		div1 = new div();
@@ -759,7 +750,7 @@ public class WLogin extends HttpServlet
 		label roleLabel = new label().setFor(P_ROLE + "F").addElement(Msg.translate(wsc.language, "AD_Role_ID"));
 		roleLabel.setID(P_ROLE + "L");
 		div1.addElement(roleLabel);
-		select role = new select(P_ROLE, MobileUtil.convertToOption(mobileRoles, null));
+		select role = new select(P_ROLE, MobileUtil.convertToOption(roles, null));
 		role.setID(P_ROLE + "F");
 		div1.addElement(new td().addElement(role));
 		fs.addElement(div1);
@@ -810,5 +801,17 @@ public class WLogin extends HttpServlet
 
 		return doc;
 	}   //  createSecondPage
+
+	public static KeyNamePair[] filterMobileRoles(KeyNamePair[] tmproles) {
+		// Only keep roles that are designed for mobile
+		List<KeyNamePair> mobileRolesList = new ArrayList<KeyNamePair>();
+		for (int i = 0; i < tmproles.length; i++) {
+			if (new MRole(Env.getCtx(), tmproles[i].getKey(), null).get_ValueAsBoolean("IsMobileEnabled")) 
+				mobileRolesList.add(tmproles[i]);
+		}
+		KeyNamePair[] roles = new KeyNamePair[mobileRolesList.size()];
+		mobileRolesList.toArray(roles);
+		return roles;
+	}
 
 }	//	WLogin
