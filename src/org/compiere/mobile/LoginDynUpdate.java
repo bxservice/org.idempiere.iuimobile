@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.compiere.model.MRole;
 import org.compiere.util.CLogger;
 import org.compiere.util.KeyNamePair;
 import org.compiere.util.Login;
@@ -102,43 +103,71 @@ public class LoginDynUpdate extends HttpServlet
 			;
 		String usr = WLogin.APP_USER;
 		String client = request.getParameter("AD_Client_ID");
-		int clientId;
-		try {
-			clientId = Integer.parseInt(client); 
-		}
-		catch (Exception e) {
-			log.log(Level.SEVERE, e.toString());
-			clientId = -1;
+		int clientId = -1;
+		if (client != null) {
+			try {
+				clientId = Integer.parseInt(client); 
+			}
+			catch (Exception e) {
+				log.log(Level.SEVERE, e.toString());
+				clientId = -1;
+			}
 		}
 		String role = request.getParameter("AD_Role_ID");
-		int roleId;
-		try {
-			roleId = Integer.parseInt(role); 
-		}
-		catch (Exception e) {
-			log.log(Level.SEVERE, e.toString());
-			roleId = -1;
+		int roleId = -1;
+		if (role != null) {
+			try {
+				roleId = Integer.parseInt(role); 
+			}
+			catch (Exception e) {
+				log.log(Level.SEVERE, e.toString());
+				roleId = -1;
+			}
 		}
 		Login login = new Login(wsc.ctx);
 		StringBuffer script = new StringBuffer ("{");
-		
+		if (clientId == -1 && roleId >= 0) {
+			clientId = MRole.get(wsc.ctx, roleId).getAD_Client_ID();
+		}
+
 		if (clientId >= 0 )
 		{
+			WLogin.setUserID(wsc.ctx, clientId);
 			//  Get Data
 			KeyNamePair[] roles = WLogin.filterMobileRoles(login.getRoles(usr, new KeyNamePair(clientId , client)));
 
 			//  Set Client ----
 			script.append("\"roles\":[");
+			// put first the selected role
+			boolean roleSet = false;
+			if (roleId >= 0) {
+				for (int i = 0; i < roles.length; i++)
+				{
+					if (roles[i].getKey() == roleId) {
+						KeyNamePair p = roles[i];
+						script.append("{\"text\":\"");
+						script.append(p.getName());     //  text
+						script.append("\",\"value\":\"");
+						script.append(p.getKey());      //  value
+						script.append("\"}");
+						roleSet = true;
+						break;
+					}
+				}
+			}
+			// now add the other roles
 			for (int i = 0; i < roles.length; i++)
 			{
-				if ( i > 0 )
-					script.append(",");
-				KeyNamePair p = roles[i];
-				script.append("{\"text\":\"");
-				script.append(p.getName());     //  text
-				script.append("\",\"value\":\"");
-				script.append(p.getKey());      //  value
-				script.append("\"}");
+				if (roles[i].getKey() != roleId) {
+					if ( roleSet || i > 0 )
+						script.append(",");
+					KeyNamePair p = roles[i];
+					script.append("{\"text\":\"");
+					script.append(p.getName());     //  text
+					script.append("\",\"value\":\"");
+					script.append(p.getKey());      //  value
+					script.append("\"}");
+				}
 			}
 			script.append("]");
 			

@@ -58,7 +58,6 @@ import org.compiere.model.MSession;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.MSystem;
 import org.compiere.model.MUser;
-import org.compiere.model.Query;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
@@ -231,32 +230,32 @@ public class WLogin extends HttpServlet
 							userName = user.getName();
 						
 						if (MSystem.isZKRememberUserAllowed()) {
-							if (user.getLDAPUser() != null && user.getLDAPUser().length() > 0) {
-								usrInput.setValue(userName);
-							} else {
-								usrInput.setValue(userName);
-							}
+							usrInput.setValue(userName);
 						}
+
+						/*
 						if (MSystem.isZKRememberPasswordAllowed()) {
-							pwdInput.setValue(user.getPassword());
+							// TODO: Encrypt password in cookie instead of reading from user
+							pwdInput.setValue(user.getPassword()); // this is not valid - can be hacked editing the cookie and assigning userId=100
 						}
-						//Validates if the remembered user is a simple user (1 org, 1 client, 1 role)
+						*/
+
+						/*
+						// TODO: Validates if the remembered user is a simple user (1 org, 1 client, 1 role) - autologin? cannot logout
+						APP_USER = userName;
 						KeyNamePair[] clients = null;
 						KeyNamePair[] roles   = null;
 						Login login = new Login(wsc.ctx);
-
 						clients = login.getClients (userName,user.getPassword());
-
-						@SuppressWarnings({ "deprecation", "unused" })
-						KeyNamePair[] rl  = login.getRoles(userName, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
-
 						if (clients != null){
+							setUserID(wsc.ctx, clients[0].getKey());
 							roles = WLogin.filterMobileRoles(login.getRoles(userName, clients[0]));
 							if(clients.length==1 && roles.length==1 && login.getOrgs(roles[0]).length==1){
 								myForm.setTarget("_self");
 								selectRole = false;
 							}
 						}
+						*/
 						pwd = "";
 					}
 				}
@@ -272,9 +271,6 @@ public class WLogin extends HttpServlet
 				Login login = new Login(wsc.ctx);
 				clients = login.getClients (APP_USER,pwd);
 
-				@SuppressWarnings({ "deprecation", "unused" })
-				KeyNamePair[] rl  = login.getRoles(APP_USER, pwd); //red1 - to trigger setting of Env.Context (AD_User_ID), etc
-
 				//  Pre-authorized
 				if (userPrincipal != null)
 					APP_USER = userPrincipal.getName();
@@ -286,6 +282,7 @@ public class WLogin extends HttpServlet
 				}
 				else
 				{
+					setUserID(wsc.ctx, clients[0].getKey());
 					roles = login.getRoles(APP_USER, clients[0]);
 					if(clients.length==1 && roles.length==1 && login.getOrgs(roles[0]).length==1 && !selectRole){
 						//If is a simple user use a _self target form if it's not use a normal form
@@ -321,22 +318,6 @@ public class WLogin extends HttpServlet
 	
 	private void createMenu(HttpServletRequest request, HttpServletResponse response, MobileSessionCtx wsc, String role, String client, String org, Properties cProp) throws ServletException, IOException
 	{
-		MUser usertmp=new MUser(Env.getCtx(), Env.getAD_User_ID(wsc.ctx), null);
-		if(usertmp.getName().compareTo("System")!=0 && usertmp.getName().compareTo("SuperUser")!=0){
-			String where="AD_Client_ID=?";
-			if(MSysConfig.getValue("USE_EMAIL_FOR_LOGIN").compareTo("Y")==0){
-				
-				where+=" AND email='" + usertmp.getEMail() +"'";
-			}else{
-				where+=" AND name='" +usertmp.getName() +"'";
-			}
-			
-			MUser user=new Query(Env.getCtx(),MUser.Table_Name,where,null).setParameters(Env.getAD_Client_ID(wsc.ctx)).first();
-			Env.setContext(wsc.ctx, "#AD_User_Name", user.getName());
-			Env.setContext(wsc.ctx, "#AD_User_ID", user.getAD_User_ID());
-			Env.setContext(wsc.ctx, "#SalesRep_ID", user.getAD_User_ID());
-		}
-		
 		//  Get Info from Context - User, Role, Client
 		int AD_User_ID = Env.getAD_User_ID(wsc.ctx);
 		int AD_Role_ID = Env.getAD_Role_ID(wsc.ctx);
@@ -442,15 +423,19 @@ public class WLogin extends HttpServlet
 		String loginInfo = null;
 		//  Verify existance of User/Client/Org/Role and User's acces to Client & Org
 		String sql = "SELECT u.Name || '@' || c.Name || '.' || o.Name || ' [' || INITCAP(USER) || ']' AS Text "
-			+ "FROM AD_User u, AD_Client c, AD_Org o, AD_User_Roles ur "
+			+ "FROM AD_User u, AD_Client c, AD_Org o, AD_Role r "
 			+ "WHERE u.AD_User_ID=?"    //  #1
 			+ " AND c.AD_Client_ID=?"   //  #2
 			+ " AND o.AD_Org_ID=?"      //  #3
-			+ " AND ur.AD_Role_ID=?"    //  #4
-			+ " AND ur.AD_User_ID=u.AD_User_ID"
-			+ " AND (o.AD_Client_ID = 0 OR o.AD_Client_ID=c.AD_Client_ID)"
-			+ " AND c.AD_Client_ID IN (SELECT AD_Client_ID FROM AD_Role_OrgAccess ca WHERE ca.AD_Role_ID=ur.AD_Role_ID)"
-			+ " AND o.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess ca WHERE ca.AD_Role_ID=ur.AD_Role_ID)";
+			+ " AND r.AD_Role_ID=?"    //  #4
+			+ " AND o.IsActive='Y' "
+			+ " AND o.AD_Client_ID IN (0, c.AD_Client_ID)"
+			+ " AND (r.IsAccessAllOrgs='Y'" 
+			+ " OR (r.IsUseUserOrgAccess='N' AND o.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess ra" 
+			+ " WHERE ra.AD_Role_ID=r.AD_Role_ID AND ra.IsActive='Y')) "
+			+ " OR (r.IsUseUserOrgAccess='Y' AND o.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_User_OrgAccess ua" 
+			+ " WHERE ua.AD_User_ID=u.AD_User_ID"
+			+ " AND ua.IsActive='Y')))";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -752,15 +737,15 @@ public class WLogin extends HttpServlet
 		div1.addElement(roleLabel);
 		select role = new select(P_ROLE, MobileUtil.convertToOption(roles, null));
 		role.setID(P_ROLE + "F");
+		role.setOnChange("loginDynUpdate(this);");        		//  sets Org
 		div1.addElement(new td().addElement(role));
 		fs.addElement(div1);
 
 		KeyNamePair[] orgs = null;
 		if ( clients.length > 0 )
-			{
-				
-				orgs = login.getOrgs (roles[0]);
-			}
+		{
+			orgs = login.getOrgs (roles[0]);
+		}
 		
 		//	Org Pick
 		div1 = new div();
@@ -813,5 +798,19 @@ public class WLogin extends HttpServlet
 		mobileRolesList.toArray(roles);
 		return roles;
 	}
+
+    public static void setUserID(Properties ctx, int clientId) {
+    	if (clientId >= 0) {
+        	Env.setContext(ctx, "#AD_Client_ID", clientId);
+    	} else {
+        	Env.setContext(ctx, "#AD_Client_ID", (String) null);
+    	}
+    	MUser user = MUser.get (ctx, WLogin.APP_USER);
+    	if (user != null) {
+    		Env.setContext(ctx, "#AD_User_ID", user.getAD_User_ID() );
+    		Env.setContext(ctx, "#AD_User_Name", user.getName() );
+    		Env.setContext(ctx, "#SalesRep_ID", user.getAD_User_ID() );
+    	}
+    }
 
 }	//	WLogin
