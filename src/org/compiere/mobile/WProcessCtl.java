@@ -16,8 +16,6 @@
  *****************************************************************************/
 package org.compiere.mobile;
 
-import java.io.InvalidClassException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,8 +25,6 @@ import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.compiere.db.CConnection;
-import org.compiere.interfaces.Server;
 import org.compiere.model.MPInstance;
 import org.compiere.print.ReportCtl;
 import org.compiere.process.ProcessCall;
@@ -125,7 +121,6 @@ public class WProcessCtl extends Thread
 	private Properties    m_wscctx;
 	private ProcessInfo     m_pi;
 	private Trx				m_trx;
-	private boolean 		m_IsServerProcess = false;
 	
 	/**	Static Logger	*/
 	private static CLogger	log	= CLogger.getCLogger (WProcessCtl.class);
@@ -205,7 +200,6 @@ public class WProcessCtl extends Thread
 				{
 					m_pi.setEstSeconds (estimate + 1);     //  admin overhead
 				}
-				m_IsServerProcess = "Y".equals(rs.getString(10));
 			}
 			else
 				log.log(Level.SEVERE, "No AD_PInstance_ID=" + m_pi.getAD_PInstance_ID());
@@ -368,127 +362,56 @@ public class WProcessCtl extends Thread
 	 *  @param AD_Workflow_ID workflow
 	 *  @return     true if started
 	 */
-	@SuppressWarnings("deprecation")
 	private boolean startWorkflow (int AD_Workflow_ID)
 	{
 		log.fine(AD_Workflow_ID + " - " + m_pi);
 		boolean started = false;
-		if (DB.isRemoteProcess())
-		{
-			log.info("trying to running on the server");
-			Server server = CConnection.get().getServer();
-			try
-			{
-				if (server != null)
-				{	//	See ServerBean
-					log.info("running on the server");
-					m_pi = server.workflow (m_wscctx, m_pi, AD_Workflow_ID);
-					log.finest("server => " + m_pi);
-					started = true;
-				}
-			}
-			catch (Exception ex)
-			{
-				log.log(Level.SEVERE, "AppsServer error", ex);
-				started = false;
-			}
-		}
-		//	Run locally
-		if (!started && !m_IsServerProcess)
-		{
-			log.info("running locally");
-			MWorkflow wf = MWorkflow.get (m_wscctx, AD_Workflow_ID);
-			MWFProcess wfProcess = null;			
-			if (m_pi.isBatch())
-				wfProcess = wf.start(m_pi);				//	may return null
-			else
-				wfProcess = wf.startWait(m_pi);	//	may return null
-			started = wfProcess != null;
-		}
+		MWorkflow wf = MWorkflow.get (m_wscctx, AD_Workflow_ID);
+		MWFProcess wfProcess = null;			
+		if (m_pi.isBatch())
+			wfProcess = wf.start(m_pi, null);				//	may return null
+		else
+			wfProcess = wf.startWait(m_pi);	//	may return null
+		started = wfProcess != null;
 		return started;
 	}   //  startWorkflow
 
 	/**************************************************************************
 	 *  Start Java Process Class.
-	 *      instanciate the class implementing the interface ProcessCall.
+	 *      instantiate the class implementing the interface ProcessCall.
 	 *  The class can be a Server/Client class (when in Package
 	 *  org compiere.process or org.compiere.model) or a client only class
 	 *  (e.g. in org.compiere.report)
 	 *
 	 *  @return     true if success
 	 */
-	@SuppressWarnings("deprecation")
 	private boolean startProcess ()
 	{
 		log.fine(m_pi.toString());
-		boolean started = false;
-		//Deprecated - always return false
-		if (DB.isRemoteProcess())
+		ProcessCall myObject = null;
+		try
 		{
-			Server server = CConnection.get().getServer();
-			try
+			Class<?> myClass = Class.forName(m_pi.getClassName());
+			myObject = (ProcessCall)myClass.newInstance();
+			if (myObject == null)
+				m_pi.setSummary("No Instance for " + m_pi.getClassName(), true);
+			else
+				myObject.startProcess(m_wscctx, m_pi, m_trx);
+			if (m_trx != null)
 			{
-				if (server != null)
-				{	//	See ServerBean
-					m_pi = server.process (m_wscctx, m_pi);
-					log.finest("server => " + m_pi);
-					started = true;		
-				}
-			}
-			catch (UndeclaredThrowableException ex)
-			{
-				Throwable cause = ex.getCause();
-				if (cause != null)
-				{
-					if (cause instanceof InvalidClassException)
-						log.log(Level.SEVERE, "Version Server <> Client: " 
-							+  cause.toString() + " - " + m_pi, ex);
-					else
-						log.log(Level.SEVERE, "AppsServer error(1b): " 
-							+ cause.toString() + " - " + m_pi, ex);
-				}
-				else
-					log.log(Level.SEVERE, " AppsServer error(1) - " 
-						+ m_pi, ex);
-				started = false;
-			}
-			catch (Exception ex)
-			{
-				Throwable cause = ex.getCause();
-				if (cause == null)
-					cause = ex;
-				log.log(Level.SEVERE, "AppsServer error - " + m_pi, cause);
-				started = false;
+				m_trx.commit();
+				m_trx.close();
 			}
 		}
-		//	Run locally
-		if (!started && !m_IsServerProcess)
+		catch (Exception e)
 		{
-			ProcessCall myObject = null;
-			try
+			if (m_trx != null)
 			{
-				Class<?> myClass = Class.forName(m_pi.getClassName());
-				myObject = (ProcessCall)myClass.newInstance();
-				if (myObject == null)
-					m_pi.setSummary("No Instance for " + m_pi.getClassName(), true);
-				else
-					myObject.startProcess(m_wscctx, m_pi, m_trx);
-				if (m_trx != null)
-				{
-					m_trx.commit();
-					m_trx.close();
-				}
+				m_trx.rollback();
+				m_trx.close();
 			}
-			catch (Exception e)
-			{
-				if (m_trx != null)
-				{
-					m_trx.rollback();
-					m_trx.close();
-				}
-				m_pi.setSummary("Error starting Class " + m_pi.getClassName(), true);
-				log.log(Level.SEVERE, m_pi.getClassName(), e);
-			}
+			m_pi.setSummary("Error starting Class " + m_pi.getClassName(), true);
+			log.log(Level.SEVERE, m_pi.getClassName(), e);
 		}
 		return !m_pi.isError();
 	}   //  startProcess
