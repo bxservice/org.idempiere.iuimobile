@@ -86,7 +86,7 @@ public class MobileEnv
 	/** Encoding (ISO-8859-1 - UTF-8) 		*/
 	public static final String      ENCODING = "UTF-8";
 	/** Cookie Name                             */
-	public static final String      COOKIE_INFO = "adempiereInfo";
+	public static final String      COOKIE_INFO = "idempiereInfo";
 
 	/** Timeout - 15 Minutes                    */
 	public static final int         TIMEOUT     = 15*60;
