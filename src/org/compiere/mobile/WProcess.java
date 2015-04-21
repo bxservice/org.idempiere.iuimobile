@@ -23,6 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
@@ -50,7 +51,6 @@ import org.apache.ecs.xhtml.table;
 import org.apache.ecs.xhtml.td;
 import org.apache.ecs.xhtml.tr;
 import org.compiere.model.GridTab;
-import org.compiere.model.I_AD_Process;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MBankStatement;
 import org.compiere.model.MInOut;
@@ -362,21 +362,6 @@ public class WProcess extends HttpServlet
 					false, para.isMandatory(), false, false, false, para.getAD_Process_ID(),
 					0,0,0,i, null,null, null,null, null);
 				
-				WebField wFieldforRange = null;
-				
-				if(para.isRange())				
-					wFieldforRange = new WebField (wsc,
-						para.getColumnName(), para.get_Translation("Name"), para.get_Translation("Description"),
-						//	no display length
-						para.getAD_Reference_ID(), para.getFieldLength(), para.getFieldLength(), false,
-						// 	not r/o, ., not error, not dependent
-						false, para.isMandatory(), false, false, false, para.getAD_Process_ID(),0,0,0,i+1,
-						null,null, null,null, null);			
-				
-				Element toField = para.isRange() 
-					? wFieldforRange.getField(para.getLookup(), para.getDefaultValue2())
-					: new td(MobileEnv.NBSP);
-				
 				div d = new div();
 				d.setClass("row");
 				//Get the default Value of the process
@@ -385,8 +370,22 @@ public class WProcess extends HttpServlet
 				//Add to list
 				fs.addElement(d
 					.addElement(wField.getLabel(true))
-					.addElement(wField.getField(para.getLookup(), defaultValue))
-					.addElement(toField));		
+					.addElement(wField.getField(para.getLookup(), defaultValue)));
+				if (para.isRange()) {
+					WebField wFieldforRange = new WebField (wsc,
+							para.getColumnName(), para.get_Translation("Name"), para.get_Translation("Description"),
+							//	no display length
+							para.getAD_Reference_ID(), para.getFieldLength(), para.getFieldLength(), false,
+							// 	not r/o, ., not error, not dependent
+							false, para.isMandatory(), false, false, false, para.getAD_Process_ID(),0,0,0,i+1,
+							null,null, null,null, null, true);
+					div dTo = new div();
+					dTo.setClass("row");
+					Object defaultValueTo = wField.getDefault(para.getDefaultValue2());
+					fs.addElement(dTo
+							.addElement(wFieldforRange.getLabel(true))
+							.addElement(wFieldforRange.getField(para.getLookup(), defaultValueTo)));
+				}
 			}
 			
 
@@ -537,7 +536,7 @@ public class WProcess extends HttpServlet
 					processOK = false;
 				} else {
 					if(jasper!=null) {
-						StringBuilder fileName = new StringBuilder(process.get_Translation(I_AD_Process.COLUMNNAME_Name));
+						StringBuilder fileName = new StringBuilder(process.get_Translation("Name"));
 						response.setHeader("Content-Disposition", "inline; filename="+fileName.toString()+ ".pdf" );
 						String error = MobileUtil.streamFile(response, pi.getPDFReport());
 						//String error = streamResult (request, response, pInstance.getAD_PInstance_ID(), file);
@@ -572,7 +571,7 @@ public class WProcess extends HttpServlet
 					{
 						try
 						{
-							StringBuilder fileName = new StringBuilder(process.get_Translation(I_AD_Process.COLUMNNAME_Name));
+							StringBuilder fileName = new StringBuilder(process.get_Translation("Name"));
 							response.setHeader("Content-Disposition", "inline; filename="+fileName.toString()+ ".pdf" );
 							File file = File.createTempFile(fileName.toString(), ".pdf");
 							boolean ok = re.createPDF(file);
@@ -678,7 +677,6 @@ public class WProcess extends HttpServlet
 							iPara.setP_Number((BigDecimal) null);
 						else
 							iPara.setP_Number(bd);
-						
 						log.fine("fillParameter - " + key
 								+ " = " + valueString + " (=" + bd + "=)");
 					}
@@ -687,8 +685,10 @@ public class WProcess extends HttpServlet
 						Timestamp ts = null;
 						if (value instanceof Timestamp)
 							ts = (Timestamp)value;
-						else
-							ts = Timestamp.valueOf(value.toString());
+						else {
+							SimpleDateFormat df = DisplayType.getDateFormat(pPara.getAD_Reference_ID());
+							ts = new Timestamp(df.parse(value.toString()).getTime());
+						}
 						iPara.setP_Date(ts);
 						log.fine("fillParameter - " + key
 							+ " = " + valueString + " (=" + ts + "=)");
@@ -702,6 +702,7 @@ public class WProcess extends HttpServlet
 						iPara.setP_String(value.toString());
 					}
 					//
+					iPara.setInfo(value.toString());
 					iPara.saveEx();
 				}
 				catch (Exception e)
@@ -710,6 +711,71 @@ public class WProcess extends HttpServlet
 						+ " = " + valueString + " (" + value
 						+ ") " + value.getClass().getName()
 						+ " - " + e.getLocalizedMessage());
+				}
+				
+				// Range To
+				key += "_2";
+				valueString = MobileUtil.getParameter (request, key);
+				value = valueString;
+				if (valueString != null && valueString.length() == 0)
+					value = null;
+				if (value != null)
+				{
+					//	Convert to Type
+					try
+					{
+						if (DisplayType.isNumeric(pPara.getAD_Reference_ID()) 
+							|| DisplayType.isID(pPara.getAD_Reference_ID()) )
+						{
+							BigDecimal bd = null;
+							if (value instanceof BigDecimal)
+								bd = (BigDecimal)value;
+							else if (value instanceof Integer)
+								bd = new BigDecimal (((Integer)value).intValue());
+							else
+								bd = new BigDecimal (value.toString());
+							
+							if ((DisplayType.isID(pPara.getAD_Reference_ID()) && "-1".equals(value))
+									|| (DisplayType.Locator == pPara.getAD_Reference_ID() && "0".equals(value)))      // empty selection
+								iPara.setP_Number_To((BigDecimal) null);
+							else
+								iPara.setP_Number_To(bd);
+							
+							log.fine("fillParameter - " + key
+									+ " = " + valueString + " (=" + bd + "=)");
+						}
+						else if (DisplayType.isDate(pPara.getAD_Reference_ID()))
+						{
+							Timestamp ts = null;
+							if (value instanceof Timestamp)
+								ts = (Timestamp)value;
+							else {
+								SimpleDateFormat df = DisplayType.getDateFormat(pPara.getAD_Reference_ID());
+								ts = new Timestamp(df.parse(value.toString()).getTime());
+							}
+							iPara.setP_Date_To(ts);
+							log.fine("fillParameter - " + key
+								+ " = " + valueString + " (=" + ts + "=)");
+						}
+						else
+						{
+
+							if (pPara.getAD_Reference_ID() == DisplayType.YesNo)
+								value = "true".equalsIgnoreCase(value.toString()) ? "Y" : "N";
+							
+							iPara.setP_String_To(value.toString());
+						}
+						//
+						iPara.setInfo_To(value.toString());
+						iPara.saveEx();
+					}
+					catch (Exception e)
+					{
+						log.warning("fillParameter - " + key
+							+ " = " + valueString + " (" + value
+							+ ") " + value.getClass().getName()
+							+ " - " + e.getLocalizedMessage());
+					}
 				}
 			}	//	not null
 		}	//	instance parameter loop
