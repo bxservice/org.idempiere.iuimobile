@@ -47,6 +47,7 @@ import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
+import org.compiere.util.Msg;
 import org.compiere.util.NamePair;
 import org.compiere.util.Util;
 import org.compiere.util.ValueNamePair;
@@ -82,15 +83,19 @@ public class WebField
 		boolean readOnly, boolean mandatory, boolean error, 
 		boolean hasDependents, boolean hasCallout, int AD_Process_ID,
 		int AD_Window_ID, int AD_Record_ID, int AD_Table_ID, int fieldNumber, Object defaultvalue, 
-		String callOut, GridTab mTab, GridField mField, MRole mRole)
+		String callOut, GridTab mTab, GridField mField, MRole mRole, boolean rangeTo)
 	{
 		super ();
 		m_wsc = wsc;
 		m_columnName = columnName;		
+		if (rangeTo)
+			m_columnName += "_2";
 		if (name == null || name.length() == 0)
 			m_name = columnName;
 		else
 			m_name = name;
+		if (rangeTo)
+			m_name += " - " + Msg.getMsg(wsc.ctx, "To");
 		if (description != null && description.length() > 0)
 			m_description = description;
 		//
@@ -118,11 +123,28 @@ public class WebField
 		m_Tab = mTab;
 		m_Field = mField;
 		m_Role = mRole;
-		
+		if (rangeTo)
+			m_SuffixTo = "T";
 		//
 		
 	}	//	WebField
 	
+	public WebField (MobileSessionCtx wsc,
+			String columnName, String name, String description,
+			int displayType, int fieldLength, int displayLength, boolean longField, 
+			boolean readOnly, boolean mandatory, boolean error, 
+			boolean hasDependents, boolean hasCallout, int AD_Process_ID,
+			int AD_Window_ID, int AD_Record_ID, int AD_Table_ID, int fieldNumber, Object defaultvalue, 
+			String callOut, GridTab mTab, GridField mField, MRole mRole) {
+		this(wsc,
+				columnName, name, description,
+				displayType, fieldLength, displayLength, longField, 
+				readOnly, mandatory, error, 
+				hasDependents, hasCallout, AD_Process_ID,
+				AD_Window_ID, AD_Record_ID, AD_Table_ID, fieldNumber, defaultvalue, 
+				callOut, mTab, mField, mRole, false);
+	}
+
 	/**	CSS Field Mandatory Class				*/
 	public static final String C_MANDATORY = "Cmandatory";
 	/**	CSS Field Error Class					*/
@@ -140,6 +162,7 @@ public class WebField
 	private GridTab m_Tab;
 	private GridField m_Field;
 	private MRole m_Role;
+	private String m_SuffixTo = "";
 	//
 	private Object	m_defaultObject;
 	private int		m_displayType;
@@ -176,8 +199,8 @@ public class WebField
 		if (m_displayType == DisplayType.Button)
 			return new label();
 		//
-		label myLabel = new label(m_columnName + "F", null, StringEscapeUtils.escapeHtml(m_name));
-		myLabel.setID(m_columnName + "L");
+		label myLabel = new label(m_columnName + "F" + m_SuffixTo, null, StringEscapeUtils.escapeHtml(m_name));
+		myLabel.setID(m_columnName + "L" + m_SuffixTo);
 		if (m_description != null)
 			myLabel.setTitle(StringEscapeUtils.escapeHtml(m_description));
 		if ( edit && m_readOnly )
@@ -346,7 +369,7 @@ public class WebField
 			string = new input(input.TYPE_TEXT, m_columnName, StringEscapeUtils.escapeHtml(data));
 		
 		
-		string.setID(m_columnName + "F");
+		string.setID(m_columnName + "F" + m_SuffixTo);
 		//string.setSize(m_displayLength);
 		if (m_fieldLength > 0)
 			string.setMaxlength(m_fieldLength);
@@ -381,7 +404,7 @@ public class WebField
 		
 		textarea text = new textarea (m_columnName, rows, m_displayLength)
 			.addElement(StringEscapeUtils.escapeHtml(data));
-		text.setID(m_columnName + "F");
+		text.setID(m_columnName + "F" + m_SuffixTo);
 		text.setDisabled(m_readOnly);
 		if (m_error)
 			text.setClass(C_ERROR);
@@ -415,7 +438,7 @@ public class WebField
 			return getDiv(StringEscapeUtils.escapeHtml(formattedData));
 
 		input string = new input(input.TYPE_TEXT, m_columnName, formattedData);
-		string.setID(m_columnName + "F");
+		string.setID(m_columnName + "F" + m_SuffixTo);
 		//string.setSize(m_displayLength);
 		if (m_fieldLength > 0)
 			string.setMaxlength(m_fieldLength);
@@ -495,7 +518,7 @@ public class WebField
 		
 		input string = new input("text", m_columnName, formattedData);
 		
-		string.setID(m_columnName + "F");
+		string.setID(m_columnName + "F" + m_SuffixTo);
 		//string.setSize(m_displayLength);
 		if (m_fieldLength > 0)
 			string.setMaxlength(m_fieldLength);
@@ -528,7 +551,7 @@ public class WebField
 		//
 		input cb = new input (input.TYPE_CHECKBOX, m_columnName, "true")
 			.setChecked(check);
-		cb.setID(m_columnName + "F");
+		cb.setID(m_columnName + "F" + m_SuffixTo);
 		cb.setDisabled(m_readOnly);
 		if (m_error)
 			cb.setClass(C_ERROR);
@@ -554,7 +577,7 @@ public class WebField
 			dataDisplay = "Select...";
 		//  The hidden data field        Name=columnName
 		input hidden = new input (input.TYPE_HIDDEN, m_columnName, dataValue);
-		hidden.setID(m_columnName + "F");
+		hidden.setID(m_columnName + "F" + m_SuffixTo);
 		//Modified by Rob Klein 4/29/07
 		//input display = null;
 		a display = null;
@@ -571,7 +594,7 @@ public class WebField
 			
 			
 			m_dataDisplay = dataDisplay;
-			display.setID(m_columnName + "D");
+			display.setID(m_columnName + "D" + m_SuffixTo);
 			//display.setReadOnly(true);
 			//display.setDisabled(m_readOnly);
 		
@@ -599,7 +622,7 @@ public class WebField
 			if(menu!=null){
 				buttonFlyout = new a("#", "");
 				buttonFlyout.addElement(new img(MobileEnv.getImageDirectory("menufly10.gif")).setBorder(0));
-				buttonFlyout.setID(m_columnName + "PV");
+				buttonFlyout.setID(m_columnName + "PV" + m_Suffix);
 				buttonFlyout.setOnMouseOver("dropdownmenu(this, event, 'menu1["+m_fieldNumber+"]')");
 				buttonFlyout.setOnMouseOut("delayhidemenu()");		
 			}
@@ -623,7 +646,7 @@ public class WebField
 		{
 			div popup = new div(menu);
 			popup.setClass("anylinkcss");
-			popup.setID("menu1["+m_fieldNumber+"]");
+			popup.setID("menu1["+m_fieldNumber+"]" + m_SuffixTo);
 			return hidden	
 			.addElement(display);	
 			}
@@ -649,7 +672,7 @@ public class WebField
 		String dataValue = (data == null) ? "" : data.toString();	
 				
 		/*input hidden = new input (input.TYPE_HIDDEN, m_columnName+"F", dataValue);
-		hidden.setID(m_columnName + "F"+m_fieldNumber);*/
+		hidden.setID(m_columnName + "F"+m_fieldNumber + m_SuffixTo);*/
 		input display = null;
 		//  The display field       Name=columnName, ID=FcolumnName
 		String formattedData = "";
@@ -680,11 +703,11 @@ public class WebField
 			return getDiv(StringEscapeUtils.escapeHtml(formattedData));
 		
 		display = new input(input.TYPE_TEXT, m_columnName, formattedData);
-		display.setID(m_columnName + "F");
+		display.setID(m_columnName + "F" + m_SuffixTo);
 		display.setReadOnly(true);		
 		//  The button              Name=columnName, ID=BcolumnName
 		input button = new input (input.TYPE_IMAGE, m_columnName+ "B", "x");
-		button.setID(m_columnName + "B");		
+		button.setID(m_columnName + "B" + m_SuffixTo);		
 		button.setSrc(MobileEnv.getImageDirectory("Calendar10.gif"));
 		
 		
@@ -698,10 +721,10 @@ public class WebField
 		format = format.replaceFirst("yy", "%y");
 		
 		if (m_displayType == DisplayType.Date){			
-			display.setOnClick("return showCalendar('"+m_columnName+ "F', '"+format+"');"); 
+			display.setOnClick("return showCalendar('"+m_columnName+ "F" + m_SuffixTo + "', '"+format+"');"); 
 		}
 		else if (m_displayType == DisplayType.DateTime){
-			display.setOnClick("showCalendar('"+m_columnName+ "F', '"+format+" %H:%M:%S %p', '24');return false;");
+			display.setOnClick("showCalendar('"+m_columnName+ "F" + m_SuffixTo + "', '"+format+" %H:%M:%S %p', '24');return false;");
 		}
 		//
 		if (m_error)
@@ -740,7 +763,7 @@ public class WebField
 				
 		option[] ops = getOptions(lookup, dataValue);
 		select sel = new select(m_columnName, ops);		
-		sel.setID(m_columnName);
+		sel.setID(m_columnName + m_SuffixTo);
 		sel.setDisabled(m_readOnly);
 		
 		if (m_error)
@@ -763,7 +786,7 @@ public class WebField
 			if(menu!=null){
 			buttonFlyout = new a("#", "");
 			buttonFlyout.addElement(new img(MobileEnv.getImageDirectory("menufly10.gif")).setBorder(0));
-			buttonFlyout.setID(m_columnName + "PV");
+			buttonFlyout.setID(m_columnName + "PV" + m_SuffixTo);
 			buttonFlyout.setOnMouseOver("dropdownmenu(this, event, 'menu1["+m_fieldNumber+"]')");
 			buttonFlyout.setOnMouseOut("delayhidemenu()");}
 			
@@ -771,7 +794,7 @@ public class WebField
 		//
 		div popup = new div(menu);
 		popup.setClass("anylinkcss");
-		popup.setID("menu1["+m_fieldNumber+"]");
+		popup.setID("menu1["+m_fieldNumber+"]" + m_SuffixTo);
 		return sel; //.addElement(buttonFlyout).addElement(popup);	
 	}	//	getSelectField
 
@@ -898,7 +921,7 @@ public class WebField
 			//	Set ValuePreference
 			//	Add by Rob Klein 6/6/2007
 			buttonValuePref = new a("#", (new img(MobileEnv.getImageDirectory("vPreference10.gif")).setBorder(0))+"  Preference");
-			buttonValuePref.setID(m_columnName + "PV");			
+			buttonValuePref.setID(m_columnName + "PV" + m_SuffixTo);			
 			buttonValuePref.setOnClick("startValuePref(" + m_displayType + ", '"+StringEscapeUtils.escapeHtml(m_dataDisplay.toString())+ "', '"
 					+ m_Field.getValue()+ "', '"+m_Field.getHeader()+ "', '"+m_Field.getColumnName()+ "', "
 					+ Env.getAD_User_ID(m_wsc.ctx)+ ", " + Env.getAD_Org_ID(m_wsc.ctx) + ", "+Env.getAD_Client_ID(m_wsc.ctx)
@@ -931,7 +954,7 @@ public class WebField
 			tableAccess = m_Role.isTableAccess(tableID, false);
 			if(tableAccess==true){			
 				buttonZoom = new a("#", (new img(MobileEnv.getImageDirectory("Zoom10.gif")).setBorder(0))+"  Zoom");
-				buttonZoom.setID(m_columnName + "Z");			
+				buttonZoom.setID(m_columnName + "Z" + m_SuffixTo);			
 				buttonZoom.setOnClick("startZoom(" + tableID + ", "+recordID+");return false;");
 				if(m_dataDisplay!=null) 
 					menu = menu + ""+buttonZoom+"\n";
