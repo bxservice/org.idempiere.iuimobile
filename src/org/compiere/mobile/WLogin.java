@@ -742,7 +742,7 @@ public class WLogin extends HttpServlet
 		fs.addElement(div1);
 
 		KeyNamePair[] orgs = null;
-		if ( clients.length > 0 )
+		if ( roles.length > 0 )
 		{
 			orgs = login.getOrgs (roles[0]);
 		}
