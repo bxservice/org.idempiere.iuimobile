@@ -243,7 +243,10 @@ public class WebField
 		}
 
 		if (DisplayType.isLookup(m_displayType) 
-				|| m_displayType == DisplayType.Locator){	
+				|| m_displayType == DisplayType.Locator 
+				// By Syed - syed@syvasoft.com
+				// added Payment data type to show as dropdown
+				|| m_displayType == DisplayType.Payment	) {	
 
 			if ( m_readOnly )
 			{
